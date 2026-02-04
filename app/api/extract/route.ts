@@ -7,9 +7,21 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { images } = await req.json();
+    const body = await req.json();
+    const { images } = body;
+
+    console.log("API /extract body keys:", Object.keys(body));
+    if (images) {
+      console.log("Images array length:", images.length);
+      if (images.length > 0) {
+        console.log("First image start:", images[0].substring(0, 50));
+      }
+    } else {
+      console.log("Images field is missing or null");
+    }
 
     if (!images || images.length === 0) {
+      console.error("Error: No images provided in request");
       return NextResponse.json({ error: 'No images provided' }, { status: 400 });
     }
 
@@ -20,84 +32,7 @@ ${images.length > 1 ? `This form has ${images.length} pages. Combine information
 
 Carefully read this Chilean fire department form and extract ALL visible information into a JSON object.
 
-Extract these fields (use null if not present):
 
-{
-  "act_number": "N° Acto",
-  "date": "DD/MM/YYYY",
-  "time": "HH:MM",
-  "return_time": "Hora de Regreso",
-  "commander": "A Cargo del Cuerpo",
-  "company_commander": "A Cargo de la Compañía",
-  "address": "Dirección Exacta",
-  "corner": "Esquina",
-  "commune": "Comuna",
-  "population": "Población",
-  "area": "Sector",
-  "nature": "Naturaleza",
-  "origin": "Origen",
-  "cause": "Causa",
-  "vehicles": [
-    {
-      "brand": "Marca",
-      "model": "Modelo",
-      "plate": "Patente",
-      "driver": "Nombre Conductor",
-      "run": "RUN"
-    }
-  ],
-  "insurance": {
-    "has_insurance": true/false,
-    "company": "Compañía de Seguros",
-    "mobile_units": ["R-5", "RCS"],
-    "conductors": "Conductor(es)"
-  },
-  "company_attendance": {
-    "quinta": 0,
-    "primera": 0,
-    "segunda": 0,
-    "tercera": 0,
-    "cuarta": 0,
-    "sexta": 0,
-    "septima": 0,
-    "octava": 0,
-    "bc_bp": 0
-  },
-  "cant_lesionados": 0,
-  "cant_involucrados": 0,
-  "cant_damnificados": 0,
-  "involved_people": [
-    {
-      "name": "Nombre Completo",
-      "run": "RUN",
-      "attended_by_132": true/false,
-      "observation": "Observación"
-    }
-  ],
-  "observations": "Full text from Observaciones section",
-  "other_observations": "Full text from Otras Observaciones",
-  "institutions_present": {
-    "carabineros": true/false,
-    "samu": true/false,
-    "pdi": true/false,
-    "prensa": true/false,
-    "bernagred": true/false,
-    "saesa": true/false,
-    "other": "other institutions"
-  }
-}
-
-CRITICAL RULES:
-- Extract ALL handwritten text from every section across ALL pages
-- For tables (vehicles, people), extract EVERY row that has any data
-- For checkboxes marked with ✓ or X, set to true
-- Read all numbers from the attendance grid carefully
-- Include full observation text
-- If a field is empty, use null
-- If text is illegible, use "illegible"
-${images.length > 1 ? '- Combine data from both pages into a single complete JSON object' : ''}
-
-Return ONLY the JSON object, no markdown formatting.
 
 Extract these fields (use null if not present):
 
