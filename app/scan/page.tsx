@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Loader2, Save, RefreshCw, X } from 'lucide-react';
+import { Camera, Loader2, Save, RefreshCw, X, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -29,8 +29,8 @@ export default function ScanPage() {
                     let width = img.width;
                     let height = img.height;
 
-                    // Resize to max 2048px to improve handwriting recognition
-                    const MAX_SIZE = 2048;
+                    // Resize to max 2560px to improve handwriting recognition
+                    const MAX_SIZE = 2560;
                     if (width > height) {
                         if (width > MAX_SIZE) {
                             height *= MAX_SIZE / width;
@@ -48,8 +48,8 @@ export default function ScanPage() {
                     const ctx = canvas.getContext('2d');
                     ctx?.drawImage(img, 0, 0, width, height);
 
-                    // Compress to JPEG 0.7
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    // Compress to JPEG 0.85 for better quality
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                     processedImages.push(dataUrl);
                     processedCount++;
 
@@ -234,12 +234,25 @@ export default function ScanPage() {
 
                         {!data && (
                             <>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
-                                >
-                                    {images.length === 1 ? 'Agregar Página 2' : 'Cambiar Imágenes'}
-                                </button>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
+                                    >
+                                        {images.length === 1 ? 'Agregar Página 2' : 'Cambiar Imágenes'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setImages([]);
+                                            setData(null);
+                                            if (fileInputRef.current) fileInputRef.current.value = '';
+                                        }}
+                                        className="px-4 py-3 bg-red-100 text-red-600 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-red-900/30 dark:text-red-400"
+                                        title="Eliminar todas las imágenes"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
                                 <button
                                     onClick={handleExtract}
                                     disabled={loading}

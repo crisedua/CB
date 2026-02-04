@@ -43,20 +43,20 @@ Extract these fields (use null if not present):
   "arrival_time": "Llegada al Lugar (HH:MM)",
   "withdrawal_time": "Retirada (HH:MM)",
   "return_time": "Hora de Regreso (HH:MM)",
-  "commander": "A Cargo del Cuerpo",
-  "company_commander": "A Cargo de la Compañía",
-  "address": "Dirección Exacta",
+  "commander": "A Cargo del Cuerpo (Extract any name in this section)",
+  "company_commander": "A Cargo de la Compañía (Extract any name)",
+  "address": "Dirección Exacta (Full address)",
   "street_number": "N° (Dirección)",
   "apartment": "Depto",
   "floor": "Piso",
-  "corner": "Esquina",
+  "corner": "Esquina (Cross street)",
   "commune": "Comuna",
   "population": "Población",
   "area": "Sector",
-  "nature": "Naturaleza del lugar",
+  "nature": "Naturaleza del lugar (e.g. Casa habitacion, Pastizales)",
   "fire_or_rescue_place": "Lugar del fuego o Rescate",
-  "origin": "Origen",
-  "cause": "Causa",
+  "origin": "Origen (Detailed description)",
+  "cause": "Causa (Detailed description)",
   "fire_type": "N° de Incendio",
   "vehicles": [
     {
@@ -68,7 +68,7 @@ Extract these fields (use null if not present):
     }
   ],
   "insurance": {
-    "has_insurance": true/false,
+    "has_insurance": true/false (Check for ANY indication of insurance),
     "company": "Compañía de Seguros",
     "mobile_units": ["R-5", "RCS"],
     "conductors": "Conductor(es)"
@@ -91,13 +91,13 @@ Extract these fields (use null if not present):
     {
       "name": "Nombre Completo",
       "run": "RUN",
-      "attended_by_132": true/false,
+      "attended_by_132": true/false (Check 'Se niega a atencion' or similar),
       "observation": "Observación",
       "moved_by": "Trasladado por 1-2 (Rechaza traslado)",
       "status": "Estado/Observación"
     }
   ],
-  "observations": "Full text from Observaciones section",
+  "observations": "Full text from Observaciones section (Transcribe EXACTLY as written)",
   "other_observations": "Full text from Otras Observaciones",
   "institutions_present": {
     "carabineros": true/false,
@@ -110,9 +110,9 @@ Extract these fields (use null if not present):
     "ong": true/false,
     "other": "Otros"
   },
-  "report_made_by": "Informe elaborado por",
-  "command_call": "Llamado de Comandancia",
-  "signature_name": "Oficial O Bombero a Cargo (Name under signature)"
+  "report_made_by": "Informe elaborado por (Name)",
+  "command_call": "Llamado de Comandancia (Name/Number)",
+  "signature_name": "Oficial O Bombero a Cargo (Name under signature/mark)"
 }
 
 CRITICAL RULES:

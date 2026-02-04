@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { FileText, Calendar, MapPin, User, ChevronRight, Search, Filter } from 'lucide-react';
+import { FileText, Calendar, MapPin, User, ChevronRight, Search, Filter, Trash2 } from 'lucide-react';
 
 interface Incident {
     id: string;
@@ -45,14 +45,32 @@ export default function DocumentsPage() {
         }
     };
 
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (!confirm('¿Estás seguro de que quieres eliminar este documento? Esta acción no se puede deshacer.')) return;
+
+        try {
+            const { error } = await supabase
+                .from('incidents')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setIncidents(incidents.filter(inc => inc.id !== id));
+        } catch (e) {
+            console.error('Error deleting incident:', e);
+            alert('Error al eliminar el documento');
+        }
+    };
+
     const filteredIncidents = incidents.filter(incident => {
-        const matchesSearch = 
+        const matchesSearch =
             incident.act_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             incident.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             incident.commander?.toLowerCase().includes(searchTerm.toLowerCase());
-        
+
         const matchesDate = !filterDate || incident.date === filterDate;
-        
+
         return matchesSearch && matchesDate;
     });
 
@@ -63,7 +81,7 @@ export default function DocumentsPage() {
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                         Documentos Escaneados
                     </h1>
-                    <button 
+                    <button
                         onClick={() => router.push('/')}
                         className="text-sm font-medium text-gray-500 hover:text-gray-700"
                     >
@@ -119,19 +137,28 @@ export default function DocumentsPage() {
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-lg">
-                                                Acto N° {incident.act_number || 'S/N'}
-                                            </h3>
-                                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                                                <Calendar className="w-3 h-3" />
-                                                <span>{incident.date} {incident.time}</span>
+                                    <div className="flex items-center justify-between gap-3 mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                                <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-lg">
+                                                    Acto N° {incident.act_number || 'S/N'}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                    <Calendar className="w-3 h-3" />
+                                                    <span>{incident.date} {incident.time}</span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={(e) => handleDelete(e, incident.id)}
+                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            title="Eliminar documento"
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
                                     </div>
 
                                     <div className="space-y-1 text-sm">
@@ -163,7 +190,7 @@ export default function DocumentsPage() {
                                     )}
                                 </div>
 
-                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2" />
+                                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2 self-center" />
                             </div>
                         </div>
                     ))}
