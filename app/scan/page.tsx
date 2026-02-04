@@ -14,12 +14,13 @@ export default function ScanPage() {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (!files) return;
+        if (!files || files.length === 0) return;
 
         const fileArray = Array.from(files);
         const processedImages: string[] = [];
+        let processedCount = 0;
 
-        fileArray.forEach((file, index) => {
+        fileArray.forEach((file) => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
@@ -50,10 +51,21 @@ export default function ScanPage() {
                     // Compress to JPEG 0.7
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     processedImages.push(dataUrl);
+                    processedCount++;
 
                     // When all images are processed, update state
-                    if (processedImages.length === fileArray.length) {
-                        setImages(processedImages);
+                    if (processedCount === fileArray.length) {
+                        setImages(prev => {
+                            // If we already have 1 image and we are uploading 1 new one, append it (Page 2)
+                            if (prev.length === 1 && processedImages.length === 1) {
+                                return [...prev, ...processedImages];
+                            }
+                            // Otherwise (0 images, or replacing, or uploading multiple at once), replace
+                            return processedImages;
+                        });
+
+                        // Reset input so same file can be selected again if needed
+                        if (fileInputRef.current) fileInputRef.current.value = '';
                     }
                 };
                 img.src = event.target?.result as string;
