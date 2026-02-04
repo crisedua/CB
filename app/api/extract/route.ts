@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         console.log("Usage:", response.usage);
 
         const content = response.choices[0].message.content;
-        const cleanContent = content?.replace(/```json / g, '').replace(/```/g, '').trim();
+        const cleanContent = content?.replace(/```json/g, '').replace(/```/g, '').trim();
 
         return NextResponse.json(JSON.parse(cleanContent || '{}'));
 
