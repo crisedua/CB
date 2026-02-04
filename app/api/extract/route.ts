@@ -14,23 +14,35 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-      You are an expert at transcribing handwritten fire department incident reports.
-      Extract the following information into a JSON object.
+        You are an expert at transcribing handwritten fire department incident reports (Bomberos Chile).
+      Your goal is to extract EVERY piece of information written on the form into a structured JSON object.
       
       Fields to extract:
-      - act_number (e.g., 10-4-1)
-      - date (DD/MM/YYYY)
-      - time (HH:MM or HH:MM:SS)
-      - commander (A Cargo del Cuerpo)
-      - company_commander (A Cargo de la Compania)
-      - address (Direccion)
-      - corner (Esquina)
-      - nature (Naturaleza)
-      - origin
-      - cause
-      - vehicles: array of objects { brand, model, plate, driver, run }
-      - involved_people: array of objects { name, run, attended_by_132 (boolean), observation, status }
-      - attendance: array of objects { volunteer_name, volunteer_id, role }
+        - act_number(N° Acto / Parte)
+            - ticket_number(N° Boleta)
+            - date(DD / MM / YYYY)
+            - time(HH: MM)
+            - address(Dirección del siniestro)
+            - corner(Esquina referencia)
+            - area(Sector / Población / Villa)
+            - box(N° Casilla)
+
+            - nature(Naturaleza del llamado)
+            - origin(Origen)
+            - cause(Causa)
+            - damage(Daños)
+
+            - commander(A Cargo del Cuerpo)
+            - company_commander(A Cargo de la Cía)
+            - total_volunteers(Total Voluntarios)
+            - safety_officer(Oficial de Seguridad)
+
+            - vehicles: array of objects { brand, model, plate, driver, run, company(e.g.B - 1) }
+        - involved_people: array of objects { name, run, age, address, insurance, diagnosis, attended_by_132, observation, status }
+
+        - institutions_present: object with booleans / details { carabineros(patrol_number), samu(ambulance_number), municipal_security, chilquinta, esval, gas_station }
+
+        - observations: Extract the full handwritten narrative / observations text verbatim.
       
       If a field is missing or illegible, set it to null.
       Return ONLY valid JSON.
@@ -59,7 +71,7 @@ export async function POST(req: Request) {
         console.log("Usage:", response.usage);
 
         const content = response.choices[0].message.content;
-        const cleanContent = content?.replace(/```json/g, '').replace(/```/g, '').trim();
+        const cleanContent = content?.replace(/```json / g, '').replace(/```/g, '').trim();
 
         return NextResponse.json(JSON.parse(cleanContent || '{}'));
 
