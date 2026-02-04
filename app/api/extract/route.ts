@@ -14,39 +14,62 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-        You are an expert at transcribing handwritten fire department incident reports (Bomberos Chile).
-      Your goal is to extract EVERY piece of information written on the form into a structured JSON object.
-      
-      Fields to extract:
-        - act_number(N° Acto / Parte)
-            - ticket_number(N° Boleta)
-            - date(DD / MM / YYYY)
-            - time(HH: MM)
-            - address(Dirección del siniestro)
-            - corner(Esquina referencia)
-            - area(Sector / Población / Villa)
-            - box(N° Casilla)
+You are an expert at transcribing handwritten fire department incident reports (Bomberos Chile).
+Your goal is to extract EVERY piece of information written on the form into a structured JSON object.
+Read ALL text carefully, including small notes, checkboxes, and marginal annotations.
 
-            - nature(Naturaleza del llamado)
-            - origin(Origen)
-            - cause(Causa)
-            - damage(Daños)
+CRITICAL: Extract ALL fields present on the form, even if partially filled or handwritten in margins.
 
-            - commander(A Cargo del Cuerpo)
-            - company_commander(A Cargo de la Cía)
-            - total_volunteers(Total Voluntarios)
-            - safety_officer(Oficial de Seguridad)
+Fields to extract:
+- act_number (N° Acto / Parte / N° Parte)
+- ticket_number (N° Boleta)
+- date (DD/MM/YYYY format)
+- time (HH:MM format)
+- address (Dirección del siniestro - full street address)
+- corner (Esquina / referencia / entre calles)
+- area (Sector / Población / Villa / Barrio)
+- box (N° Casilla / Caja)
 
-            - vehicles: array of objects { brand, model, plate, driver, run, company(e.g.B - 1) }
-        - involved_people: array of objects { name, run, age, address, insurance, diagnosis, attended_by_132, observation, status }
+- nature (Naturaleza del llamado / siniestro - e.g., incendio, rescate, accidente)
+- origin (Origen del incidente)
+- cause (Causa del incidente)
+- damage (Daños materiales / descripción)
 
-        - institutions_present: object with booleans / details { carabineros(patrol_number), samu(ambulance_number), municipal_security, chilquinta, esval, gas_station }
+- commander (A Cargo del Cuerpo / Comandante del Cuerpo)
+- company_commander (A Cargo de la Compañía / Comandante Cía)
+- total_volunteers (Total de Voluntarios / Dotación)
+- safety_officer (Oficial de Seguridad)
 
-        - observations: Extract the full handwritten narrative / observations text verbatim.
-      
-      If a field is missing or illegible, set it to null.
-      Return ONLY valid JSON.
-    `;
+- vehicles: array of ALL vehicles/machines listed { brand, model, plate, driver, run, company (e.g., "B-1", "M-2") }
+- involved_people: array of ALL people listed { name, run, age, address, insurance, diagnosis, attended_by_132 (boolean), observation, status }
+
+- attendance: array of ALL firefighters who attended { volunteer_name, volunteer_id, present (boolean) }
+
+- institutions_present: object { 
+    carabineros (boolean and patrol_number if present), 
+    samu (boolean and ambulance_number if present), 
+    municipal_security (boolean), 
+    chilquinta (boolean), 
+    esval (boolean), 
+    gas_station (boolean),
+    other (any other institutions mentioned)
+  }
+
+- observations (Observaciones principales / narrative text - extract ALL written text verbatim)
+- other_observations (Otras observaciones / additional notes / marginal notes)
+
+IMPORTANT INSTRUCTIONS:
+1. Read EVERY section of the form, including headers, footers, and margins
+2. Extract ALL handwritten text, even if messy or abbreviated
+3. For checkboxes, note which ones are marked
+4. For tables (vehicles, people, attendance), extract ALL rows, even partially filled
+5. Preserve exact spelling and abbreviations used
+6. If text is illegible, mark as "illegible" rather than null
+7. Include any stamps, signatures, or official marks mentioned
+
+If a field is completely empty or not present on the form, set it to null.
+Return ONLY valid JSON with no markdown formatting.
+`;
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o",

@@ -93,8 +93,16 @@ export default function ScanPage() {
                 date: formattedDate,
                 time: data.time,
                 address: data.address,
+                corner: data.corner,
+                area: data.area,
                 commander: data.commander,
+                company_commander: data.company_commander,
                 act_number: data.act_number,
+                nature: data.nature,
+                origin: data.origin,
+                cause: data.cause,
+                observations: data.observations,
+                other_observations: data.other_observations,
                 raw_data: data
             }).select().single();
 
@@ -122,9 +130,22 @@ export default function ScanPage() {
                     incident_id: insertedData.id,
                     name: p.name,
                     run: p.run,
-                    // attended_by_132: p.attended_by_132
+                    attended_by_132: p.attended_by_132,
+                    observation: p.observation,
+                    status: p.status
                 }));
                 await supabase.from('incident_involved_people').insert(people);
+            }
+
+            // Insert attendance if any
+            if (data.attendance?.length > 0 && insertedData) {
+                const attendance = data.attendance.map((a: any) => ({
+                    incident_id: insertedData.id,
+                    volunteer_name: a.volunteer_name,
+                    volunteer_id: a.volunteer_id,
+                    present: a.present !== false // default to true
+                }));
+                await supabase.from('incident_attendance').insert(attendance);
             }
 
             alert('¡Informe guardado con éxito!');
@@ -226,6 +247,7 @@ export default function ScanPage() {
                                     <label className="text-xs text-gray-500 uppercase font-semibold">Dirección / Esquina</label>
                                     <div className="font-medium">{data.address}</div>
                                     {data.corner && <div className="text-sm text-gray-500 mt-1">Esq: {data.corner}</div>}
+                                    {data.area && <div className="text-sm text-gray-500 mt-1">Sector: {data.area}</div>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
@@ -249,6 +271,39 @@ export default function ScanPage() {
                                     <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
                                         <label className="text-xs text-gray-500 uppercase font-semibold">Observaciones</label>
                                         <div className="text-sm whitespace-pre-wrap">{data.observations}</div>
+                                    </div>
+                                )}
+
+                                {data.other_observations && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Otras Observaciones</label>
+                                        <div className="text-sm whitespace-pre-wrap">{data.other_observations}</div>
+                                    </div>
+                                )}
+
+                                {data.damage && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Daños</label>
+                                        <div className="text-sm whitespace-pre-wrap">{data.damage}</div>
+                                    </div>
+                                )}
+
+                                {data.institutions_present && Object.keys(data.institutions_present).length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Instituciones Presentes</label>
+                                        <div className="text-sm space-y-1">
+                                            {data.institutions_present.carabineros && (
+                                                <div>✓ Carabineros {data.institutions_present.patrol_number && `(Patrulla ${data.institutions_present.patrol_number})`}</div>
+                                            )}
+                                            {data.institutions_present.samu && (
+                                                <div>✓ SAMU {data.institutions_present.ambulance_number && `(Ambulancia ${data.institutions_present.ambulance_number})`}</div>
+                                            )}
+                                            {data.institutions_present.municipal_security && <div>✓ Seguridad Municipal</div>}
+                                            {data.institutions_present.chilquinta && <div>✓ Chilquinta</div>}
+                                            {data.institutions_present.esval && <div>✓ Esval</div>}
+                                            {data.institutions_present.gas_station && <div>✓ Estación de Gas</div>}
+                                            {data.institutions_present.other && <div>✓ {data.institutions_present.other}</div>}
+                                        </div>
                                     </div>
                                 )}
 
@@ -276,12 +331,32 @@ export default function ScanPage() {
                                             <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0">
                                                 <div className="font-medium">{p.name}</div>
                                                 <div className="text-xs text-gray-500 flex justify-between">
-                                                    <span>RUN: {p.run}</span>
-                                                    <span>{p.attended_by_132 ? 'Atendido 132' : ''}</span>
+                                                    <span>RUN: {p.run || 'N/A'}</span>
+                                                    {p.attended_by_132 && <span className="text-red-600 font-semibold">✓ Atendido 132</span>}
                                                 </div>
+                                                {p.age && <div className="text-xs">Edad: {p.age}</div>}
+                                                {p.address && <div className="text-xs">Dirección: {p.address}</div>}
+                                                {p.diagnosis && <div className="text-xs text-orange-600">Diagnóstico: {p.diagnosis}</div>}
+                                                {p.status && <div className="text-xs">Estado: {p.status}</div>}
                                                 {p.observation && <div className="text-xs italic mt-1">{p.observation}</div>}
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+
+                                {data.attendance?.length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Asistencia de Voluntarios ({data.attendance.length})</label>
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            {data.attendance.map((a: any, i: number) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <span className={a.present !== false ? 'text-green-600' : 'text-red-600'}>
+                                                        {a.present !== false ? '✓' : '✗'}
+                                                    </span>
+                                                    <span>{a.volunteer_name || `Vol. ${a.volunteer_id}`}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
