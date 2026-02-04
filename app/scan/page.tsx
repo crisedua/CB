@@ -23,8 +23,8 @@ export default function ScanPage() {
                     let width = img.width;
                     let height = img.height;
 
-                    // Resize to max 1024px to speed up AI processing (was 1500)
-                    const MAX_SIZE = 1024;
+                    // Resize to max 2048px to improve handwriting recognition
+                    const MAX_SIZE = 2048;
                     if (width > height) {
                         if (width > MAX_SIZE) {
                             height *= MAX_SIZE / width;
@@ -188,7 +188,7 @@ export default function ScanPage() {
                                 {loading ? (
                                     <div className="flex flex-col items-center gap-2">
                                         <Loader2 className="animate-spin w-6 h-6" />
-                                        <span className="text-xs opacity-75">Analizando... (aprox 15-20s)</span>
+                                        <span className="text-xs opacity-75">Analizando... (aprox 20-30s)</span>
                                     </div>
                                 ) : (
                                     <>
