@@ -94,7 +94,7 @@ export default function ScanPage() {
                 time: data.time,
                 address: data.address,
                 corner: data.corner,
-                area: data.area,
+                area: data.area || data.population,
                 commander: data.commander,
                 company_commander: data.company_commander,
                 act_number: data.act_number,
@@ -248,6 +248,8 @@ export default function ScanPage() {
                                     <div className="font-medium">{data.address}</div>
                                     {data.corner && <div className="text-sm text-gray-500 mt-1">Esq: {data.corner}</div>}
                                     {data.area && <div className="text-sm text-gray-500 mt-1">Sector: {data.area}</div>}
+                                    {data.population && <div className="text-sm text-gray-500 mt-1">Población: {data.population}</div>}
+                                    {data.commune && <div className="text-sm text-gray-500 mt-1">Comuna: {data.commune}</div>}
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
@@ -266,6 +268,50 @@ export default function ScanPage() {
                                     <div className="font-medium border-b pb-1 mb-1">{data.nature || 'N/A'}</div>
                                     <div className="text-sm text-gray-600">{[data.origin, data.cause].filter(Boolean).join(' - ')}</div>
                                 </div>
+
+                                {(data.cant_lesionados || data.cant_involucrados || data.cant_damnificados) && (
+                                    <div className="p-3 bg-orange-50 rounded-lg dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                                        <label className="text-xs text-orange-700 dark:text-orange-400 uppercase font-semibold mb-2 block">Cantidades</label>
+                                        <div className="grid grid-cols-3 gap-2 text-sm">
+                                            {data.cant_lesionados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_lesionados}</span> <span className="text-xs">Lesionados</span></div>}
+                                            {data.cant_involucrados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_involucrados}</span> <span className="text-xs">Involucrados</span></div>}
+                                            {data.cant_damnificados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_damnificados}</span> <span className="text-xs">Damnificados</span></div>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {data.insurance && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Seguro / Móviles</label>
+                                        <div className="text-sm">
+                                            {data.insurance.has_insurance ? 'Sí' : 'No'}
+                                            {data.insurance.company && ` - ${data.insurance.company}`}
+                                        </div>
+                                        {data.insurance.mobile_units && (
+                                            <div className="text-xs text-gray-500 mt-1">Móviles: {Array.isArray(data.insurance.mobile_units) ? data.insurance.mobile_units.join(', ') : data.insurance.mobile_units}</div>
+                                        )}
+                                        {data.insurance.conductors && (
+                                            <div className="text-xs text-gray-500">Conductores: {data.insurance.conductors}</div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {data.company_attendance && Object.keys(data.company_attendance).length > 0 && (
+                                    <div className="p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                                        <label className="text-xs text-blue-700 dark:text-blue-400 uppercase font-semibold mb-2 block">Asistencia por Compañía</label>
+                                        <div className="grid grid-cols-4 gap-2 text-xs">
+                                            {data.company_attendance.quinta && <div className="font-semibold">5ª: {data.company_attendance.quinta}</div>}
+                                            {data.company_attendance.primera && <div className="font-semibold">1ª: {data.company_attendance.primera}</div>}
+                                            {data.company_attendance.segunda && <div className="font-semibold">2ª: {data.company_attendance.segunda}</div>}
+                                            {data.company_attendance.tercera && <div className="font-semibold">3ª: {data.company_attendance.tercera}</div>}
+                                            {data.company_attendance.cuarta && <div className="font-semibold">4ª: {data.company_attendance.cuarta}</div>}
+                                            {data.company_attendance.sexta && <div className="font-semibold">6ª: {data.company_attendance.sexta}</div>}
+                                            {data.company_attendance.septima && <div className="font-semibold">7ª: {data.company_attendance.septima}</div>}
+                                            {data.company_attendance.octava && <div className="font-semibold">8ª: {data.company_attendance.octava}</div>}
+                                            {data.company_attendance.bc_bp && <div className="font-semibold">BC/BP: {data.company_attendance.bc_bp}</div>}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {data.observations && (
                                     <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">

@@ -14,77 +14,93 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-You are an expert at transcribing handwritten fire department incident reports (Bomberos Chile).
-Your goal is to extract EVERY piece of information written on the form into a structured JSON object.
-Read ALL text carefully, including small notes, checkboxes, and marginal annotations.
+You are an expert at transcribing handwritten Chilean fire department incident reports.
+Extract EVERY piece of information from this form into structured JSON.
 
-CRITICAL: Extract ALL fields present on the form, even if partially filled or handwritten in margins.
+FORM STRUCTURE TO EXTRACT:
 
-Fields to extract:
-- act_number (N° Acto / Parte / N° Parte)
-- ticket_number (N° Boleta)
-- date (DD/MM/YYYY format)
-- time (HH:MM format)
-- address (Dirección del siniestro - full street address)
-- corner (Esquina / referencia / entre calles)
-- area (Sector / Población / Villa / Barrio)
-- box (N° Casilla / Caja)
+1. HEADER SECTION:
+- act_number (Acto / N° de Incendio)
+- list_number (Lista N°)
+- date (Fecha - format DD/MM/YYYY)
+- time (Hora del Acto - format HH:MM)
+- return_time (Hora de Regreso)
+- retired_time (Retirada)
+- arrival_location (Llegada al Lugar)
+- commander (A Cargo del Cuerpo)
+- company_commander (A Cargo de la Compañía, N°, Depto, Piso)
+- address (Dirección Exacta)
+- corner (Esquina más próx.)
+- commune (Comuna)
+- population (Población)
+- nature (Naturaleza del lugar)
+- fire_rescue_location (Lugar del fuego o Rescate)
+- origin (Origen)
+- cause (Causa)
 
-- nature (Naturaleza del llamado / siniestro - e.g., incendio, rescate, accidente)
-- origin (Origen del incidente)
-- cause (Causa del incidente)
-- damage (Daños materiales / descripción)
+2. VEHICLES TABLE (Marca, Modelo, Patente, Nombre Conductor, RUN):
+- vehicles: array of { brand, model, plate, driver, run }
+  Example from form: 
+  - { brand: "DAC", model: "152", plate: "PPBL-28", driver: "Luis Carmona", run: "12.594.066-6" }
+  - { brand: "MAZDA", model: "B1-50", plate: "SDIII", driver: "Alejandro Eschmann", run: "14.337.968-7" }
 
-- commander (A Cargo del Cuerpo / Comandante del Cuerpo)
-- company_commander (A Cargo de la Compañía / Comandante Cía)
-- total_volunteers (Total de Voluntarios / Dotación)
-- safety_officer (Oficial de Seguridad)
+3. INSURANCE SECTION:
+- insurance: { has_insurance (Si/NO), company, mobile_units (R-5, RCS, etc.), conductors, other_conductors }
 
-- vehicles: array of ALL vehicles/machines listed { brand, model, plate, driver, run, company (e.g., "B-1", "M-2") }
+4. COMPANY ATTENDANCE (Compañía grid with columns 5ª, 1ª, 2ª, 3ª, 4ª, 6ª, 7ª, 8ª, BC/BP):
+- company_attendance: { 
+    quinta: number, 
+    primera: number, 
+    segunda: number, 
+    tercera: number, 
+    cuarta: number, 
+    sexta: number, 
+    septima: number, 
+    octava: number, 
+    bc_bp: number 
+  }
+- attendance_sector: { rural: boolean, lugar: string, sector_numbers: array }
+- attendance_correction (Corrección)
 
-- involved_people: CRITICAL - Parse ALL people mentioned in ANY section:
-  * Look in dedicated "Personas Involucradas" tables
-  * Parse from observations text (e.g., "3 involucrados", "1 adulto lesionado")
-  * Extract from narrative descriptions
-  * Each person should be: { name, run, age, address, insurance, diagnosis, attended_by_132 (boolean), observation, status }
-  * If names aren't provided but people are mentioned (e.g., "3 involucrados"), create entries like:
-    - { name: "Persona 1", observation: "Involucrado en incidente" }
-    - { name: "Persona 2", observation: "Involucrado en incidente" }
-  * If someone was "trasladado x 132" or "atendido por 132", set attended_by_132: true
-  * Parse injury descriptions: "adulto lesionado" → { age: "adulto", status: "lesionado", attended_by_132: true }
+5. INJURED/INVOLVED PEOPLE TABLE:
+- cant_lesionados (Cant. Lesionados)
+- cant_involucrados (Cant. Involucrados)
+- cant_damnificados (Cant. Damnificados)
+- involved_people: array of {
+    name (Nombre Completo),
+    run,
+    attended_by_132 (SI/NO as boolean),
+    observation (Trasladado por 1-2, Rechaza traslado, etc.)
+  }
 
-- attendance: array of ALL firefighters who attended { volunteer_name, volunteer_id, present (boolean) }
+6. OBSERVATIONS:
+- observations (Observaciones - main narrative text)
+- other_observations (Otras Observaciones)
 
-- institutions_present: Parse from checkboxes AND text mentions:
-  * carabineros (boolean and patrol_number if present)
-  * samu (boolean and ambulance_number if present)
-  * municipal_security (boolean)
-  * chilquinta (boolean)
-  * esval (boolean)
-  * gas_station (boolean)
-  * other (any other institutions mentioned)
-  * If mentioned in text like "✓ Carabineros" or "Carabineros presentes", set to true
+7. INSTITUTIONS PRESENT (bottom section):
+- institutions_present: {
+    location (En el lugar): { pdi, prensa, bernagred, saesa, suralic, ong, otros },
+    carabineros: { present, name, comisaria, grado, movil },
+    ambulancia: { present, name, cargo, entidad, movil }
+  }
 
-- observations (Observaciones principales / narrative text - extract ALL written text verbatim, but DON'T duplicate info already parsed into structured fields)
-- other_observations (Otras observaciones / additional notes / marginal notes)
+8. REPORT METADATA:
+- report_prepared_by (Informe elaborado por - Incendio)
+- list_prepared_by (Lista confeccionada por)
+- officer_in_charge (Oficial O Bombero a Cargo - with signature)
+- called_by_command (Llamado de Comandancia)
 
-PARSING RULES FOR OBSERVATIONS TEXT:
-1. If observations mention people counts (e.g., "3 involucrados"), create that many entries in involved_people array
-2. If observations mention injuries (e.g., "1 adulto lesionado"), add to involved_people with status: "lesionado"
-3. If observations mention "trasladado x 132" or "atendido 132", set attended_by_132: true for that person
-4. Extract institution names from observations and add to institutions_present
-5. Keep the original observation text, but ALSO parse it into structured data
+CRITICAL PARSING INSTRUCTIONS:
+1. Extract ALL handwritten text from every field, even if partially filled
+2. For tables, extract ALL rows with any data
+3. For checkboxes (SI/NO), return boolean values
+4. For the attendance grid, extract the numbers written in each company column
+5. Parse mobile units like "R-5 ✓", "RCS ✓" as array entries
+6. Extract conductor names from "Conductor(es):" field
+7. Read signatures and names at the bottom
+8. If a field is empty, set to null
+9. If text is illegible, mark as "illegible"
 
-IMPORTANT INSTRUCTIONS:
-1. Read EVERY section of the form, including headers, footers, and margins
-2. Extract ALL handwritten text, even if messy or abbreviated
-3. For checkboxes, note which ones are marked
-4. For tables (vehicles, people, attendance), extract ALL rows, even partially filled
-5. Parse narrative text into structured data when possible
-6. If text is illegible, mark as "illegible" rather than null
-7. Include any stamps, signatures, or official marks mentioned
-
-If a field is completely empty or not present on the form, set it to null.
 Return ONLY valid JSON with no markdown formatting.
 `;
 
