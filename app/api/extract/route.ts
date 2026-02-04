@@ -41,29 +41,46 @@ Fields to extract:
 - safety_officer (Oficial de Seguridad)
 
 - vehicles: array of ALL vehicles/machines listed { brand, model, plate, driver, run, company (e.g., "B-1", "M-2") }
-- involved_people: array of ALL people listed { name, run, age, address, insurance, diagnosis, attended_by_132 (boolean), observation, status }
+
+- involved_people: CRITICAL - Parse ALL people mentioned in ANY section:
+  * Look in dedicated "Personas Involucradas" tables
+  * Parse from observations text (e.g., "3 involucrados", "1 adulto lesionado")
+  * Extract from narrative descriptions
+  * Each person should be: { name, run, age, address, insurance, diagnosis, attended_by_132 (boolean), observation, status }
+  * If names aren't provided but people are mentioned (e.g., "3 involucrados"), create entries like:
+    - { name: "Persona 1", observation: "Involucrado en incidente" }
+    - { name: "Persona 2", observation: "Involucrado en incidente" }
+  * If someone was "trasladado x 132" or "atendido por 132", set attended_by_132: true
+  * Parse injury descriptions: "adulto lesionado" → { age: "adulto", status: "lesionado", attended_by_132: true }
 
 - attendance: array of ALL firefighters who attended { volunteer_name, volunteer_id, present (boolean) }
 
-- institutions_present: object { 
-    carabineros (boolean and patrol_number if present), 
-    samu (boolean and ambulance_number if present), 
-    municipal_security (boolean), 
-    chilquinta (boolean), 
-    esval (boolean), 
-    gas_station (boolean),
-    other (any other institutions mentioned)
-  }
+- institutions_present: Parse from checkboxes AND text mentions:
+  * carabineros (boolean and patrol_number if present)
+  * samu (boolean and ambulance_number if present)
+  * municipal_security (boolean)
+  * chilquinta (boolean)
+  * esval (boolean)
+  * gas_station (boolean)
+  * other (any other institutions mentioned)
+  * If mentioned in text like "✓ Carabineros" or "Carabineros presentes", set to true
 
-- observations (Observaciones principales / narrative text - extract ALL written text verbatim)
+- observations (Observaciones principales / narrative text - extract ALL written text verbatim, but DON'T duplicate info already parsed into structured fields)
 - other_observations (Otras observaciones / additional notes / marginal notes)
+
+PARSING RULES FOR OBSERVATIONS TEXT:
+1. If observations mention people counts (e.g., "3 involucrados"), create that many entries in involved_people array
+2. If observations mention injuries (e.g., "1 adulto lesionado"), add to involved_people with status: "lesionado"
+3. If observations mention "trasladado x 132" or "atendido 132", set attended_by_132: true for that person
+4. Extract institution names from observations and add to institutions_present
+5. Keep the original observation text, but ALSO parse it into structured data
 
 IMPORTANT INSTRUCTIONS:
 1. Read EVERY section of the form, including headers, footers, and margins
 2. Extract ALL handwritten text, even if messy or abbreviated
 3. For checkboxes, note which ones are marked
 4. For tables (vehicles, people, attendance), extract ALL rows, even partially filled
-5. Preserve exact spelling and abbreviations used
+5. Parse narrative text into structured data when possible
 6. If text is illegible, mark as "illegible" rather than null
 7. Include any stamps, signatures, or official marks mentioned
 
@@ -82,12 +99,14 @@ Return ONLY valid JSON with no markdown formatting.
                             type: "image_url",
                             image_url: {
                                 url: image,
+                                detail: "high" // Use high detail for better handwriting recognition
                             },
                         },
                     ],
                 },
             ],
-            max_tokens: 4096,
+            max_tokens: 8000, // Increased for more comprehensive extraction
+            temperature: 0.1, // Lower temperature for more consistent extraction
         });
 
         // Debug info
