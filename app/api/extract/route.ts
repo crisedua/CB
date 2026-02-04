@@ -63,8 +63,20 @@ export async function POST(req: Request) {
 
         return NextResponse.json(JSON.parse(cleanContent || '{}'));
 
-    } catch (error) {
-        console.error("AI Error:", error);
-        return NextResponse.json({ error: 'Failed to process image' }, { status: 500 });
+    } catch (error: any) {
+        console.error("AI Error Detailed:", error);
+
+        // Check for common OpenAI errors
+        if (error.status === 401) {
+            return NextResponse.json({ error: 'Incorrect OpenAI API Key' }, { status: 401 });
+        }
+        if (error.status === 429) {
+            return NextResponse.json({ error: 'OpenAI Rate Limit Exceeded' }, { status: 429 });
+        }
+
+        return NextResponse.json({
+            error: error.message || 'Failed to process image',
+            details: error.toString()
+        }, { status: 500 });
     }
 }

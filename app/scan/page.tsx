@@ -23,8 +23,8 @@ export default function ScanPage() {
                     let width = img.width;
                     let height = img.height;
 
-                    // Resize to max 1024px to avoid payload limits
-                    const MAX_SIZE = 1500;
+                    // Resize to max 1024px to speed up AI processing (was 1500)
+                    const MAX_SIZE = 1024;
                     if (width > height) {
                         if (width > MAX_SIZE) {
                             height *= MAX_SIZE / width;
@@ -185,7 +185,12 @@ export default function ScanPage() {
                                 disabled={loading}
                                 className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-70"
                             >
-                                {loading ? <Loader2 className="animate-spin w-6 h-6" /> : (
+                                {loading ? (
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="animate-spin w-6 h-6" />
+                                        <span className="text-xs opacity-75">Analizando... (aprox 15-20s)</span>
+                                    </div>
+                                ) : (
                                     <>
                                         <span>Extraer Datos</span>
                                         <div className="px-2 py-1 bg-white/20 rounded text-xs">IA</div>
