@@ -128,8 +128,8 @@ Return ONLY the JSON object, no markdown formatting.
         // Debug info
         console.log("Usage:", response.usage);
 
-        const content = response.choices[0].message.content;
-        const cleanContent = content?.replace(/```json/g, '').replace(/```/g, '').trim();
+        const responseContent = response.choices[0].message.content;
+        const cleanContent = responseContent?.replace(/```json/g, '').replace(/```/g, '').trim();
 
         return NextResponse.json(JSON.parse(cleanContent || '{}'));
 
