@@ -212,272 +212,274 @@ export default function ScanPage() {
                 />
 
                 {images.length > 0 && (
-                    <div className="space-y-4">
-                        {images.map((img, idx) => (
-                            <div key={idx} className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-neutral-700">
-                                <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                                    Página {idx + 1}
+                    <div className={`flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${data ? 'mb-6' : ''}`}>
+                        <div className="space-y-4">
+                            {images.map((img, idx) => (
+                                <div key={idx} className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-neutral-700">
+                                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                        Página {idx + 1}
+                                    </div>
+                                    <img src={img} alt={`Página ${idx + 1}`} className="w-full max-h-[40vh] object-contain bg-black/5" />
+                                    {!data && (
+                                        <button
+                                            onClick={() => setImages(images.filter((_, i) => i !== idx))}
+                                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full backdrop-blur-md hover:bg-red-600"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
-                                <img src={img} alt={`Página ${idx + 1}`} className="w-full max-h-[40vh] object-contain bg-black/5" />
-                                {!data && (
-                                    <button
-                                        onClick={() => setImages(images.filter((_, i) => i !== idx))}
-                                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full backdrop-blur-md hover:bg-red-600"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                        {!data && (
-                    <>
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
-                        >
-                            {images.length === 1 ? 'Agregar Página 2' : 'Cambiar Imágenes'}
-                        </button>
-                        <button
-                            onClick={handleExtract}
-                            disabled={loading}
-                            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-70"
-                        >
-                            {loading ? (
-                                <div className="flex flex-col items-center gap-2">
-                                    <Loader2 className="animate-spin w-6 h-6" />
-                                    <span className="text-xs opacity-75">Analizando {images.length} página(s)... (aprox 30-60s)</span>
-                                </div>
-                            ) : (
-                                <>
-                                    <span>Extraer Datos</span>
-                                    <div className="px-2 py-1 bg-white/20 rounded text-xs">IA</div>
-                                </>
-                            )}
-                        </button>
-                    </>
-                )}
-            </div>
-            )
-                }
-
-            {data && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 dark:bg-neutral-800 dark:border-neutral-700">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-bold text-xl">Revisar Datos</h2>
-                            <span className="text-xs font-mono bg-green-100 text-green-700 px-2 py-1 rounded-full dark:bg-green-900/30 dark:text-green-400">Confianza Alta</span>
+                            ))}
                         </div>
 
-                        {/* Full Incident Details */}
-                        <div className="space-y-4">
-                            {/* ... Content Rendered ... */}
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">N° Acto / Incendio</label>
-                                    <div className="font-medium">{data.act_number || '-'} {data.fire_type && `(Incendio: ${data.fire_type})`}</div>
-                                </div>
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Tiempos</label>
-                                    <div className="grid grid-cols-2 gap-x-2 text-sm">
-                                        <div><span className="text-xs text-gray-400">Fecha:</span> {data.date}</div>
-                                        <div><span className="text-xs text-gray-400">Hora:</span> {data.time}</div>
-                                        {data.arrival_time && <div><span className="text-xs text-gray-400">Llegada:</span> {data.arrival_time}</div>}
-                                        {data.withdrawal_time && <div><span className="text-xs text-gray-400">Retirada:</span> {data.withdrawal_time}</div>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                <label className="text-xs text-gray-500 uppercase font-semibold">Información del Lugar</label>
-                                <div className="font-medium text-lg">{data.address} {data.street_number && `#${data.street_number}`}</div>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-sm text-gray-600 dark:text-gray-300">
-                                    {data.corner && <div><span className="font-semibold text-gray-400 text-xs">Esq:</span> {data.corner}</div>}
-                                    {data.apartment && <div><span className="font-semibold text-gray-400 text-xs">Depto:</span> {data.apartment}</div>}
-                                    {data.floor && <div><span className="font-semibold text-gray-400 text-xs">Piso:</span> {data.floor}</div>}
-                                    {data.commune && <div><span className="font-semibold text-gray-400 text-xs">Comuna:</span> {data.commune}</div>}
-                                    {data.population && <div><span className="font-semibold text-gray-400 text-xs">Población:</span> {data.population}</div>}
-                                    {data.area && <div><span className="font-semibold text-gray-400 text-xs">Sector:</span> {data.area}</div>}
-                                    {data.fire_or_rescue_place && <div className="col-span-2 border-t pt-1 mt-1"><span className="font-semibold text-gray-400 text-xs">Lugar Fuego/Rescate:</span> {data.fire_or_rescue_place}</div>}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cuerpo</label>
-                                    <div className="font-medium">{data.commander || '-'}</div>
-                                </div>
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cía</label>
-                                    <div className="font-medium">{data.company_commander || '-'}</div>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                <label className="text-xs text-gray-500 uppercase font-semibold">Naturaleza / Origen / Causa</label>
-                                <div className="font-medium border-b pb-1 mb-1">{data.nature || 'N/A'}</div>
-                                <div className="text-sm text-gray-600 dark:text-gray-300">{[data.origin, data.cause].filter(Boolean).join(' - ')}</div>
-                            </div>
-
-                            {(data.cant_lesionados || data.cant_involucrados || data.cant_damnificados) && (
-                                <div className="p-3 bg-orange-50 rounded-lg dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
-                                    <label className="text-xs text-orange-700 dark:text-orange-400 uppercase font-semibold mb-2 block">Cantidades</label>
-                                    <div className="grid grid-cols-3 gap-2 text-sm">
-                                        {data.cant_lesionados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_lesionados}</span> <span className="text-xs">Lesionados</span></div>}
-                                        {data.cant_involucrados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_involucrados}</span> <span className="text-xs">Involucrados</span></div>}
-                                        {data.cant_damnificados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_damnificados}</span> <span className="text-xs">Damnificados</span></div>}
-                                    </div>
-                                </div>
-                            )}
-
-                            {data.insurance && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Seguro / Móviles</label>
-                                    <div className="text-sm">
-                                        {data.insurance.has_insurance ? 'Sí' : 'No'}
-                                        {data.insurance.company && ` - ${data.insurance.company}`}
-                                    </div>
-                                    {data.insurance.mobile_units && (
-                                        <div className="text-xs text-gray-500 mt-1">Móviles: {Array.isArray(data.insurance.mobile_units) ? data.insurance.mobile_units.join(', ') : data.insurance.mobile_units}</div>
-                                    )}
-                                    {data.insurance.conductors && (
-                                        <div className="text-xs text-gray-500">Conductores: {data.insurance.conductors}</div>
-                                    )}
-                                </div>
-                            )}
-
-                            {data.company_attendance && Object.keys(data.company_attendance).length > 0 && (
-                                <div className="p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-                                    <label className="text-xs text-blue-700 dark:text-blue-400 uppercase font-semibold mb-2 block">Asistencia por Compañía</label>
-                                    <div className="grid grid-cols-4 gap-2 text-xs">
-                                        {data.company_attendance.quinta && <div className="font-semibold">5ª: {data.company_attendance.quinta}</div>}
-                                        {data.company_attendance.primera && <div className="font-semibold">1ª: {data.company_attendance.primera}</div>}
-                                        {data.company_attendance.segunda && <div className="font-semibold">2ª: {data.company_attendance.segunda}</div>}
-                                        {data.company_attendance.tercera && <div className="font-semibold">3ª: {data.company_attendance.tercera}</div>}
-                                        {data.company_attendance.cuarta && <div className="font-semibold">4ª: {data.company_attendance.cuarta}</div>}
-                                        {data.company_attendance.sexta && <div className="font-semibold">6ª: {data.company_attendance.sexta}</div>}
-                                        {data.company_attendance.septima && <div className="font-semibold">7ª: {data.company_attendance.septima}</div>}
-                                        {data.company_attendance.octava && <div className="font-semibold">8ª: {data.company_attendance.octava}</div>}
-                                        {data.company_attendance.bc_bp && <div className="font-semibold">BC/BP: {data.company_attendance.bc_bp}</div>}
-                                    </div>
-                                </div>
-                            )}
-
-                            {data.observations && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Observaciones</label>
-                                    <div className="text-sm whitespace-pre-wrap font-mono text-gray-700 dark:text-gray-300">{data.observations}</div>
-                                </div>
-                            )}
-
-                            {data.other_observations && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Otras Observaciones</label>
-                                    <div className="text-sm whitespace-pre-wrap">{data.other_observations}</div>
-                                </div>
-                            )}
-
-                            {data.institutions_present && Object.keys(data.institutions_present).length > 0 && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Instituciones Presentes</label>
-                                    <div className="grid grid-cols-2 text-sm gap-y-1">
-                                        {data.institutions_present.carabineros && <div>✓ Carabineros</div>}
-                                        {data.institutions_present.samu && <div>✓ SAMU / Ambulancia</div>}
-                                        {data.institutions_present.pdi && <div>✓ PDI</div>}
-                                        {data.institutions_present.prensa && <div>✓ Prensa</div>}
-                                        {data.institutions_present.sernapred && <div>✓ Sernapred</div>}
-                                        {data.institutions_present.saesa && <div>✓ Saesa</div>}
-                                        {data.institutions_present.suralis && <div>✓ Suralis</div>}
-                                        {data.institutions_present.ong && <div>✓ ONG</div>}
-                                        {data.institutions_present.other && <div className="col-span-2">✓ Otros: {data.institutions_present.other}</div>}
-                                    </div>
-                                </div>
-                            )}
-
-                            {data.vehicles?.length > 0 && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Vehículos ({data.vehicles.length})</label>
-                                    {data.vehicles.map((v: any, i: number) => (
-                                        <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0 grid grid-cols-[1fr_auto] gap-2">
-                                            <div>
-                                                <span className="font-medium block">{v.brand} {v.model}</span>
-                                                <span className="text-xs text-gray-500">{v.plate}</span>
-                                            </div>
-                                            <div className="text-right text-xs">
-                                                {v.driver}<br />{v.run}
-                                            </div>
+                        {!data && (
+                            <>
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
+                                >
+                                    {images.length === 1 ? 'Agregar Página 2' : 'Cambiar Imágenes'}
+                                </button>
+                                <button
+                                    onClick={handleExtract}
+                                    disabled={loading}
+                                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-70"
+                                >
+                                    {loading ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Loader2 className="animate-spin w-6 h-6" />
+                                            <span className="text-xs opacity-75">Analizando {images.length} página(s)... (aprox 30-60s)</span>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                    ) : (
+                                        <>
+                                            <span>Extraer Datos</span>
+                                            <div className="px-2 py-1 bg-white/20 rounded text-xs">IA</div>
+                                        </>
+                                    )}
+                                </button>
+                            </>
+                        )}
+                    </div>
+                )
+                }
 
-                            {data.involved_people?.length > 0 && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Personas Involucradas ({data.involved_people.length})</label>
-                                    {data.involved_people.map((p: any, i: number) => (
-                                        <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0">
-                                            <div className="font-medium">{p.name}</div>
-                                            <div className="grid grid-cols-2 gap-x-4 mt-1">
-                                                <div className="text-xs text-gray-500">RUN: {p.run || 'N/A'}</div>
-                                                {p.attended_by_132 && <div className="text-xs text-red-600 font-semibold text-right">✓ Atendido 132</div>}
-                                            </div>
-                                            {p.moved_by && <div className="text-xs mt-1 text-blue-600"> Traslado: {p.moved_by}</div>}
-                                            {p.status && <div className="text-xs">Estado: {p.status}</div>}
-                                            {p.observation && <div className="text-xs italic mt-1 text-gray-600">"{p.observation}"</div>}
+                {data && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 dark:bg-neutral-800 dark:border-neutral-700">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="font-bold text-xl">Revisar Datos</h2>
+                                <span className="text-xs font-mono bg-green-100 text-green-700 px-2 py-1 rounded-full dark:bg-green-900/30 dark:text-green-400">Confianza Alta</span>
+                            </div>
+
+                            {/* Full Incident Details */}
+                            <div className="space-y-4">
+                                {/* ... Content Rendered ... */}
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">N° Acto / Incendio</label>
+                                        <div className="font-medium">{data.act_number || '-'} {data.fire_type && `(Incendio: ${data.fire_type})`}</div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Tiempos</label>
+                                        <div className="grid grid-cols-2 gap-x-2 text-sm">
+                                            <div><span className="text-xs text-gray-400">Fecha:</span> {data.date}</div>
+                                            <div><span className="text-xs text-gray-400">Hora:</span> {data.time}</div>
+                                            {data.arrival_time && <div><span className="text-xs text-gray-400">Llegada:</span> {data.arrival_time}</div>}
+                                            {data.withdrawal_time && <div><span className="text-xs text-gray-400">Retirada:</span> {data.withdrawal_time}</div>}
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
-                            )}
 
-                            {data.attendance?.length > 0 && (
                                 <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Asistencia de Voluntarios ({data.attendance.length})</label>
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        {data.attendance.map((a: any, i: number) => (
-                                            <div key={i} className="flex items-center gap-2">
-                                                <span className={a.present !== false ? 'text-green-600' : 'text-red-600'}>
-                                                    {a.present !== false ? '✓' : '✗'}
-                                                </span>
-                                                <span>{a.volunteer_name || `Vol. ${a.volunteer_id}`}</span>
+                                    <label className="text-xs text-gray-500 uppercase font-semibold">Información del Lugar</label>
+                                    <div className="font-medium text-lg">{data.address} {data.street_number && `#${data.street_number}`}</div>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-sm text-gray-600 dark:text-gray-300">
+                                        {data.corner && <div><span className="font-semibold text-gray-400 text-xs">Esq:</span> {data.corner}</div>}
+                                        {data.apartment && <div><span className="font-semibold text-gray-400 text-xs">Depto:</span> {data.apartment}</div>}
+                                        {data.floor && <div><span className="font-semibold text-gray-400 text-xs">Piso:</span> {data.floor}</div>}
+                                        {data.commune && <div><span className="font-semibold text-gray-400 text-xs">Comuna:</span> {data.commune}</div>}
+                                        {data.population && <div><span className="font-semibold text-gray-400 text-xs">Población:</span> {data.population}</div>}
+                                        {data.area && <div><span className="font-semibold text-gray-400 text-xs">Sector:</span> {data.area}</div>}
+                                        {data.fire_or_rescue_place && <div className="col-span-2 border-t pt-1 mt-1"><span className="font-semibold text-gray-400 text-xs">Lugar Fuego/Rescate:</span> {data.fire_or_rescue_place}</div>}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cuerpo</label>
+                                        <div className="font-medium">{data.commander || '-'}</div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cía</label>
+                                        <div className="font-medium">{data.company_commander || '-'}</div>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                    <label className="text-xs text-gray-500 uppercase font-semibold">Naturaleza / Origen / Causa</label>
+                                    <div className="font-medium border-b pb-1 mb-1">{data.nature || 'N/A'}</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-300">{[data.origin, data.cause].filter(Boolean).join(' - ')}</div>
+                                </div>
+
+                                {(data.cant_lesionados || data.cant_involucrados || data.cant_damnificados) && (
+                                    <div className="p-3 bg-orange-50 rounded-lg dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                                        <label className="text-xs text-orange-700 dark:text-orange-400 uppercase font-semibold mb-2 block">Cantidades</label>
+                                        <div className="grid grid-cols-3 gap-2 text-sm">
+                                            {data.cant_lesionados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_lesionados}</span> <span className="text-xs">Lesionados</span></div>}
+                                            {data.cant_involucrados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_involucrados}</span> <span className="text-xs">Involucrados</span></div>}
+                                            {data.cant_damnificados && <div><span className="text-orange-600 font-bold text-lg">{data.cant_damnificados}</span> <span className="text-xs">Damnificados</span></div>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {data.insurance && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Seguro / Móviles</label>
+                                        <div className="text-sm">
+                                            {data.insurance.has_insurance ? 'Sí' : 'No'}
+                                            {data.insurance.company && ` - ${data.insurance.company}`}
+                                        </div>
+                                        {data.insurance.mobile_units && (
+                                            <div className="text-xs text-gray-500 mt-1">Móviles: {Array.isArray(data.insurance.mobile_units) ? data.insurance.mobile_units.join(', ') : data.insurance.mobile_units}</div>
+                                        )}
+                                        {data.insurance.conductors && (
+                                            <div className="text-xs text-gray-500">Conductores: {data.insurance.conductors}</div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {data.company_attendance && Object.keys(data.company_attendance).length > 0 && (
+                                    <div className="p-3 bg-blue-50 rounded-lg dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                                        <label className="text-xs text-blue-700 dark:text-blue-400 uppercase font-semibold mb-2 block">Asistencia por Compañía</label>
+                                        <div className="grid grid-cols-4 gap-2 text-xs">
+                                            {data.company_attendance.quinta && <div className="font-semibold">5ª: {data.company_attendance.quinta}</div>}
+                                            {data.company_attendance.primera && <div className="font-semibold">1ª: {data.company_attendance.primera}</div>}
+                                            {data.company_attendance.segunda && <div className="font-semibold">2ª: {data.company_attendance.segunda}</div>}
+                                            {data.company_attendance.tercera && <div className="font-semibold">3ª: {data.company_attendance.tercera}</div>}
+                                            {data.company_attendance.cuarta && <div className="font-semibold">4ª: {data.company_attendance.cuarta}</div>}
+                                            {data.company_attendance.sexta && <div className="font-semibold">6ª: {data.company_attendance.sexta}</div>}
+                                            {data.company_attendance.septima && <div className="font-semibold">7ª: {data.company_attendance.septima}</div>}
+                                            {data.company_attendance.octava && <div className="font-semibold">8ª: {data.company_attendance.octava}</div>}
+                                            {data.company_attendance.bc_bp && <div className="font-semibold">BC/BP: {data.company_attendance.bc_bp}</div>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {data.observations && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Observaciones</label>
+                                        <div className="text-sm whitespace-pre-wrap font-mono text-gray-700 dark:text-gray-300">{data.observations}</div>
+                                    </div>
+                                )}
+
+                                {data.other_observations && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Otras Observaciones</label>
+                                        <div className="text-sm whitespace-pre-wrap">{data.other_observations}</div>
+                                    </div>
+                                )}
+
+                                {data.institutions_present && Object.keys(data.institutions_present).length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Instituciones Presentes</label>
+                                        <div className="grid grid-cols-2 text-sm gap-y-1">
+                                            {data.institutions_present.carabineros && <div>✓ Carabineros</div>}
+                                            {data.institutions_present.samu && <div>✓ SAMU / Ambulancia</div>}
+                                            {data.institutions_present.pdi && <div>✓ PDI</div>}
+                                            {data.institutions_present.prensa && <div>✓ Prensa</div>}
+                                            {data.institutions_present.sernapred && <div>✓ Sernapred</div>}
+                                            {data.institutions_present.saesa && <div>✓ Saesa</div>}
+                                            {data.institutions_present.suralis && <div>✓ Suralis</div>}
+                                            {data.institutions_present.ong && <div>✓ ONG</div>}
+                                            {data.institutions_present.other && <div className="col-span-2">✓ Otros: {data.institutions_present.other}</div>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {data.vehicles?.length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Vehículos ({data.vehicles.length})</label>
+                                        {data.vehicles.map((v: any, i: number) => (
+                                            <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0 grid grid-cols-[1fr_auto] gap-2">
+                                                <div>
+                                                    <span className="font-medium block">{v.brand} {v.model}</span>
+                                                    <span className="text-xs text-gray-500">{v.plate}</span>
+                                                </div>
+                                                <div className="text-right text-xs">
+                                                    {v.driver}<br />{v.run}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Footer Data */}
-                            {(data.report_made_by || data.command_call || data.signature_name) && (
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Cierre del Informe</label>
-                                    <div className="grid grid-cols-1 gap-2 text-sm">
-                                        {data.report_made_by && <div><span className="text-xs text-gray-400 block">Elaborado por:</span> {data.report_made_by}</div>}
-                                        {data.command_call && <div><span className="text-xs text-gray-400 block">Llamado Comandancia:</span> {data.command_call}</div>}
-                                        {data.signature_name && <div><span className="text-xs text-gray-400 block">Firma / Cargo:</span> {data.signature_name}</div>}
+                                {data.involved_people?.length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Personas Involucradas ({data.involved_people.length})</label>
+                                        {data.involved_people.map((p: any, i: number) => (
+                                            <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0">
+                                                <div className="font-medium">{p.name}</div>
+                                                <div className="grid grid-cols-2 gap-x-4 mt-1">
+                                                    <div className="text-xs text-gray-500">RUN: {p.run || 'N/A'}</div>
+                                                    {p.attended_by_132 && <div className="text-xs text-red-600 font-semibold text-right">✓ Atendido 132</div>}
+                                                </div>
+                                                {p.moved_by && <div className="text-xs mt-1 text-blue-600"> Traslado: {p.moved_by}</div>}
+                                                {p.status && <div className="text-xs">Estado: {p.status}</div>}
+                                                {p.observation && <div className="text-xs italic mt-1 text-gray-600">"{p.observation}"</div>}
+                                            </div>
+                                        ))}
                                     </div>
-                                </div>
-                            )}
+                                )}
+
+                                {data.attendance?.length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Asistencia de Voluntarios ({data.attendance.length})</label>
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            {data.attendance.map((a: any, i: number) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <span className={a.present !== false ? 'text-green-600' : 'text-red-600'}>
+                                                        {a.present !== false ? '✓' : '✗'}
+                                                    </span>
+                                                    <span>{a.volunteer_name || `Vol. ${a.volunteer_id}`}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Footer Data */}
+                                {(data.report_made_by || data.command_call || data.signature_name) && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Cierre del Informe</label>
+                                        <div className="grid grid-cols-1 gap-2 text-sm">
+                                            {data.report_made_by && <div><span className="text-xs text-gray-400 block">Elaborado por:</span> {data.report_made_by}</div>}
+                                            {data.command_call && <div><span className="text-xs text-gray-400 block">Llamado Comandancia:</span> {data.command_call}</div>}
+                                            {data.signature_name && <div><span className="text-xs text-gray-400 block">Firma / Cargo:</span> {data.signature_name}</div>}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setData(null)}
+                                className="flex-1 py-4 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
+                            >
+                                Editar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="flex-[2] py-4 bg-green-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+                            >
+                                <Save className="w-5 h-5" />
+                                Guardar Informe
+                            </button>
                         </div>
                     </div>
-
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => setData(null)}
-                            className="flex-1 py-4 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
-                        >
-                            Editar
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="flex-[2] py-4 bg-green-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-600/30 flex items-center justify-center gap-2 active:scale-95 transition-transform"
-                        >
-                            <Save className="w-5 h-5" />
-                            Guardar Informe
-                        </button>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }
