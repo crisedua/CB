@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Camera } from 'lucide-react';
+import { Camera, FileText } from 'lucide-react';
 
 export default function Home() {
     return (
@@ -25,6 +25,22 @@ export default function Home() {
                     </h2>
                     <p className="m-0 max-w-[30ch] text-sm opacity-50">
                         Toma una foto de un nuevo informe de incidente para extraer los datos.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/documents"
+                    className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+                >
+                    <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2">
+                        <FileText className="w-6 h-6" />
+                        Ver Documentos
+                        <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                            -&gt;
+                        </span>
+                    </h2>
+                    <p className="m-0 max-w-[30ch] text-sm opacity-50">
+                        Revisa todos los informes escaneados y guardados en el sistema.
                     </p>
                 </Link>
             </div>
