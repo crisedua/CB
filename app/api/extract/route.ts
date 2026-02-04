@@ -7,14 +7,16 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
     try {
-        const { image } = await req.json();
+        const { images } = await req.json();
 
-        if (!image) {
-            return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+        if (!images || images.length === 0) {
+            return NextResponse.json({ error: 'No images provided' }, { status: 400 });
         }
 
         const prompt = `
 You are an expert at extracting data from handwritten fire department incident reports.
+
+${images.length > 1 ? `This form has ${images.length} pages. Combine information from ALL pages.` : ''}
 
 Carefully read this Chilean fire department form and extract ALL visible information into a JSON object.
 
@@ -86,36 +88,41 @@ Extract these fields (use null if not present):
 }
 
 CRITICAL RULES:
-- Extract ALL handwritten text from every section
+- Extract ALL handwritten text from every section across ALL pages
 - For tables (vehicles, people), extract EVERY row that has any data
 - For checkboxes marked with ✓ or X, set to true
 - Read all numbers from the attendance grid carefully
 - Include full observation text
 - If a field is empty, use null
 - If text is illegible, use "illegible"
+${images.length > 1 ? '- Combine data from both pages into a single complete JSON object' : ''}
 
 Return ONLY the JSON object, no markdown formatting.
 `;
+
+        // Build content array with all images
+        const content: any[] = [{ type: "text", text: prompt }];
+        
+        images.forEach((image: string, index: number) => {
+            content.push({
+                type: "image_url",
+                image_url: {
+                    url: image,
+                    detail: "high"
+                },
+            });
+        });
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
                 {
                     role: "user",
-                    content: [
-                        { type: "text", text: prompt },
-                        {
-                            type: "image_url",
-                            image_url: {
-                                url: image,
-                                detail: "high" // Use high detail for better handwriting recognition
-                            },
-                        },
-                    ],
+                    content: content,
                 },
             ],
-            max_tokens: 8000, // Increased for more comprehensive extraction
-            temperature: 0.1, // Lower temperature for more consistent extraction
+            max_tokens: 8000,
+            temperature: 0.1,
         });
 
         // Debug info

@@ -1,20 +1,25 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Loader2, Save, RefreshCw } from 'lucide-react';
+import { Camera, Loader2, Save, RefreshCw, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function ScanPage() {
-    const [image, setImage] = useState<string | null>(null);
+    const [images, setImages] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
+        const files = e.target.files;
+        if (!files) return;
+
+        const fileArray = Array.from(files);
+        const processedImages: string[] = [];
+
+        fileArray.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
@@ -44,22 +49,27 @@ export default function ScanPage() {
 
                     // Compress to JPEG 0.7
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    setImage(dataUrl);
+                    processedImages.push(dataUrl);
+
+                    // When all images are processed, update state
+                    if (processedImages.length === fileArray.length) {
+                        setImages(processedImages);
+                    }
                 };
                 img.src = event.target?.result as string;
             };
             reader.readAsDataURL(file);
-        }
+        });
     };
 
     const handleExtract = async () => {
-        if (!image) return;
+        if (images.length === 0) return;
         setLoading(true);
         try {
             const res = await fetch('/api/extract', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image }),
+                body: JSON.stringify({ images }),
             });
             const json = await res.json();
             if (res.ok) {
@@ -165,7 +175,7 @@ export default function ScanPage() {
 
             {/* Main Content Area */}
             <div className={data ? "grid lg:grid-cols-2 gap-8" : "max-w-xl mx-auto"}>
-                {!image && (
+                {images.length === 0 && (
                     <div
                         onClick={() => fileInputRef.current?.click()}
                         className="group border-2 border-dashed border-gray-300 rounded-2xl h-[60vh] flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-white hover:border-blue-400 hover:shadow-xl dark:border-neutral-700 dark:hover:bg-neutral-800"
@@ -174,50 +184,66 @@ export default function ScanPage() {
                             <Camera className="w-12 h-12 text-blue-500" />
                         </div>
                         <p className="text-gray-600 font-medium text-lg">Toca para abrir la cámara</p>
-                        <p className="text-gray-400 text-sm mt-2">o sube una foto</p>
+                        <p className="text-gray-400 text-sm mt-2">Sube 1 o 2 páginas del informe</p>
                         <input
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
                             capture="environment"
+                            multiple
                             className="hidden"
                             onChange={handleFileChange}
                         />
                     </div>
                 )}
 
-                {image && (
+                {images.length > 0 && (
                     <div className={`flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ${data ? 'mb-6' : ''}`}>
-                        <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-neutral-700">
-                            <img src={image} alt="Preview" className="w-full max-h-[60vh] object-contain bg-black/5" />
-                            {!data && (
-                                <button
-                                    onClick={() => { setImage(null); setData(null); }}
-                                    className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full backdrop-blur-md hover:bg-black/70"
-                                >
-                                    <RefreshCw className="w-5 h-5" />
-                                </button>
-                            )}
+                        <div className="space-y-4">
+                            {images.map((img, idx) => (
+                                <div key={idx} className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-neutral-700">
+                                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                        Página {idx + 1}
+                                    </div>
+                                    <img src={img} alt={`Página ${idx + 1}`} className="w-full max-h-[40vh] object-contain bg-black/5" />
+                                    {!data && (
+                                        <button
+                                            onClick={() => setImages(images.filter((_, i) => i !== idx))}
+                                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full backdrop-blur-md hover:bg-red-600"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
                         </div>
 
                         {!data && (
-                            <button
-                                onClick={handleExtract}
-                                disabled={loading}
-                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-70"
-                            >
-                                {loading ? (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="animate-spin w-6 h-6" />
-                                        <span className="text-xs opacity-75">Analizando... (aprox 20-30s)</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <span>Extraer Datos</span>
-                                        <div className="px-2 py-1 bg-white/20 rounded text-xs">IA</div>
-                                    </>
-                                )}
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold active:scale-95 transition-transform dark:bg-neutral-800 dark:text-gray-300"
+                                >
+                                    {images.length === 1 ? 'Agregar Página 2' : 'Cambiar Imágenes'}
+                                </button>
+                                <button
+                                    onClick={handleExtract}
+                                    disabled={loading}
+                                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-3 active:scale-95 transition-transform disabled:opacity-70"
+                                >
+                                    {loading ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Loader2 className="animate-spin w-6 h-6" />
+                                            <span className="text-xs opacity-75">Analizando {images.length} página(s)... (aprox 30-60s)</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span>Extraer Datos</span>
+                                            <div className="px-2 py-1 bg-white/20 rounded text-xs">IA</div>
+                                        </>
+                                    )}
+                                </button>
+                            </>
                         )}
                     </div>
                 )}
