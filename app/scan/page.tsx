@@ -209,27 +209,77 @@ export default function ScanPage() {
                                 <span className="text-xs font-mono bg-green-100 text-green-700 px-2 py-1 rounded-full dark:bg-green-900/30 dark:text-green-400">Confianza Alta</span>
                             </div>
 
-                            {/* Simplified Check Form */}
+                            {/* Full Incident Details */}
                             <div className="space-y-4">
-                                <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Fecha y Hora</label>
-                                    <div className="font-medium">{data.date} a las {data.time}</div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">N° Acto</label>
+                                        <div className="font-medium">{data.act_number || '-'}</div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Fecha y Hora</label>
+                                        <div className="font-medium">{data.date} {data.time}</div>
+                                    </div>
                                 </div>
+
                                 <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Dirección</label>
+                                    <label className="text-xs text-gray-500 uppercase font-semibold">Dirección / Esquina</label>
                                     <div className="font-medium">{data.address}</div>
+                                    {data.corner && <div className="text-sm text-gray-500 mt-1">Esq: {data.corner}</div>}
                                 </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cuerpo</label>
+                                        <div className="font-medium">{data.commander || '-'}</div>
+                                    </div>
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Comandante Cía</label>
+                                        <div className="font-medium">{data.company_commander || '-'}</div>
+                                    </div>
+                                </div>
+
                                 <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                    <label className="text-xs text-gray-500 uppercase font-semibold">Comandante / Cargo</label>
-                                    <div className="font-medium">{data.commander}</div>
+                                    <label className="text-xs text-gray-500 uppercase font-semibold">Naturaleza / Origen / Causa</label>
+                                    <div className="font-medium border-b pb-1 mb-1">{data.nature || 'N/A'}</div>
+                                    <div className="text-sm text-gray-600">{[data.origin, data.cause].filter(Boolean).join(' - ')}</div>
                                 </div>
+
+                                {data.observations && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold">Observaciones</label>
+                                        <div className="text-sm whitespace-pre-wrap">{data.observations}</div>
+                                    </div>
+                                )}
 
                                 {data.vehicles?.length > 0 && (
                                     <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
-                                        <label className="text-xs text-gray-500 uppercase font-semibold">Vehículos</label>
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Vehículos ({data.vehicles.length})</label>
                                         {data.vehicles.map((v: any, i: number) => (
+                                            <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0 grid grid-cols-[1fr_auto] gap-2">
+                                                <div>
+                                                    <span className="font-medium block">{v.brand} {v.model}</span>
+                                                    <span className="text-xs text-gray-500">{v.plate}</span>
+                                                </div>
+                                                <div className="text-right text-xs">
+                                                    {v.driver}<br />{v.run}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {data.involved_people?.length > 0 && (
+                                    <div className="p-3 bg-gray-50 rounded-lg dark:bg-neutral-900/50">
+                                        <label className="text-xs text-gray-500 uppercase font-semibold mb-2 block">Personas Involucradas ({data.involved_people.length})</label>
+                                        {data.involved_people.map((p: any, i: number) => (
                                             <div key={i} className="text-sm border-t border-gray-200 mt-2 pt-2 first:border-0 first:mt-0 first:pt-0">
-                                                {v.brand} {v.model} - {v.plate}
+                                                <div className="font-medium">{p.name}</div>
+                                                <div className="text-xs text-gray-500 flex justify-between">
+                                                    <span>RUN: {p.run}</span>
+                                                    <span>{p.attended_by_132 ? 'Atendido 132' : ''}</span>
+                                                </div>
+                                                {p.observation && <div className="text-xs italic mt-1">{p.observation}</div>}
                                             </div>
                                         ))}
                                     </div>
