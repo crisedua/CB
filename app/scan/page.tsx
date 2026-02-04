@@ -16,8 +16,37 @@ export default function ScanPage() {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Resize to max 1024px to avoid payload limits
+                    const MAX_SIZE = 1500;
+                    if (width > height) {
+                        if (width > MAX_SIZE) {
+                            height *= MAX_SIZE / width;
+                            width = MAX_SIZE;
+                        }
+                    } else {
+                        if (height > MAX_SIZE) {
+                            width *= MAX_SIZE / height;
+                            height = MAX_SIZE;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG 0.7
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    setImage(dataUrl);
+                };
+                img.src = event.target?.result as string;
             };
             reader.readAsDataURL(file);
         }
@@ -36,11 +65,12 @@ export default function ScanPage() {
             if (res.ok) {
                 setData(json);
             } else {
-                alert('Error al extraer datos');
+                console.error(json);
+                alert('Error al extraer datos: ' + (json.error || 'Desconocido'));
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert('Error al extraer datos');
+            alert('Error al extraer datos: ' + e.message);
         } finally {
             setLoading(false);
         }
