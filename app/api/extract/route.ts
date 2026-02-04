@@ -14,66 +14,87 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-Extract ALL information from this Chilean fire department incident report form.
-Read EVERY handwritten field, table, checkbox, and section carefully.
+You are an expert at extracting data from handwritten fire department incident reports.
 
-Return a JSON object with these fields (set to null if empty):
+Carefully read this Chilean fire department form and extract ALL visible information into a JSON object.
 
-BASIC INFO:
-- act_number: N° Acto/Parte
-- date: Fecha (DD/MM/YYYY)
-- time: Hora del Acto (HH:MM)
-- return_time: Hora de Regreso
-- commander: A Cargo del Cuerpo
-- company_commander: A Cargo de la Compañía
-- address: Dirección Exacta
-- corner: Esquina más próx.
-- commune: Comuna
-- population: Población
-- area: Sector
-- nature: Naturaleza del lugar
-- origin: Origen
-- cause: Causa
+Extract these fields (use null if not present):
 
-VEHICLES (extract ALL rows from Marca/Modelo/Patente/Conductor/RUN table):
-- vehicles: [{ brand, model, plate, driver, run }]
-
-INSURANCE & MOBILE UNITS:
-- insurance: { has_insurance: boolean, company: string, mobile_units: ["R-5", "RCS"], conductors: string }
-
-COMPANY ATTENDANCE (extract numbers from grid):
-- company_attendance: { quinta, primera, segunda, tercera, cuarta, sexta, septima, octava, bc_bp }
-
-PEOPLE COUNTS & DETAILS:
-- cant_lesionados: number
-- cant_involucrados: number  
-- cant_damnificados: number
-- involved_people: [{ name, run, attended_by_132: boolean, observation }]
-
-OBSERVATIONS:
-- observations: full text from "Observaciones:" section
-- other_observations: text from "Otras Observaciones:" section
-
-INSTITUTIONS (checkboxes at bottom):
-- institutions_present: { 
-    carabineros: boolean,
-    samu: boolean,
-    pdi: boolean,
-    prensa: boolean,
-    bernagred: boolean,
-    saesa: boolean,
-    other: string
+{
+  "act_number": "N° Acto",
+  "date": "DD/MM/YYYY",
+  "time": "HH:MM",
+  "return_time": "Hora de Regreso",
+  "commander": "A Cargo del Cuerpo",
+  "company_commander": "A Cargo de la Compañía",
+  "address": "Dirección Exacta",
+  "corner": "Esquina",
+  "commune": "Comuna",
+  "population": "Población",
+  "area": "Sector",
+  "nature": "Naturaleza",
+  "origin": "Origen",
+  "cause": "Causa",
+  "vehicles": [
+    {
+      "brand": "Marca",
+      "model": "Modelo",
+      "plate": "Patente",
+      "driver": "Nombre Conductor",
+      "run": "RUN"
+    }
+  ],
+  "insurance": {
+    "has_insurance": true/false,
+    "company": "Compañía de Seguros",
+    "mobile_units": ["R-5", "RCS"],
+    "conductors": "Conductor(es)"
+  },
+  "company_attendance": {
+    "quinta": 0,
+    "primera": 0,
+    "segunda": 0,
+    "tercera": 0,
+    "cuarta": 0,
+    "sexta": 0,
+    "septima": 0,
+    "octava": 0,
+    "bc_bp": 0
+  },
+  "cant_lesionados": 0,
+  "cant_involucrados": 0,
+  "cant_damnificados": 0,
+  "involved_people": [
+    {
+      "name": "Nombre Completo",
+      "run": "RUN",
+      "attended_by_132": true/false,
+      "observation": "Observación"
+    }
+  ],
+  "observations": "Full text from Observaciones section",
+  "other_observations": "Full text from Otras Observaciones",
+  "institutions_present": {
+    "carabineros": true/false,
+    "samu": true/false,
+    "pdi": true/false,
+    "prensa": true/false,
+    "bernagred": true/false,
+    "saesa": true/false,
+    "other": "other institutions"
   }
+}
 
-IMPORTANT:
-1. Extract ALL handwritten text, even if messy
-2. For tables, get EVERY row that has any data
-3. For SI/NO checkboxes, return true/false
-4. Read numbers carefully from attendance grid
-5. Don't skip any sections
-6. If illegible, write "illegible" not null
+CRITICAL RULES:
+- Extract ALL handwritten text from every section
+- For tables (vehicles, people), extract EVERY row that has any data
+- For checkboxes marked with ✓ or X, set to true
+- Read all numbers from the attendance grid carefully
+- Include full observation text
+- If a field is empty, use null
+- If text is illegible, use "illegible"
 
-Return ONLY valid JSON, no markdown.
+Return ONLY the JSON object, no markdown formatting.
 `;
 
         const response = await openai.chat.completions.create({
