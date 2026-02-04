@@ -53,3 +53,23 @@ create table if not exists incident_attendance (
   volunteer_id int,
   present boolean default true
 );
+
+-- SECURITY POLICIES --
+
+-- Allow public access for this prototype (Warning: NOT for production sensitive data)
+alter table incidents enable row level security;
+alter table incident_vehicles enable row level security;
+alter table incident_involved_people enable row level security;
+alter table incident_attendance enable row level security;
+
+-- Policy for Inserts
+create policy "Allow Public Insert Incidents" on incidents for insert with check (true);
+create policy "Allow Public Insert Vehicles" on incident_vehicles for insert with check (true);
+create policy "Allow Public Insert People" on incident_involved_people for insert with check (true);
+create policy "Allow Public Insert Attendance" on incident_attendance for insert with check (true);
+
+-- Policy for Selects (so we can see what we saved)
+create policy "Allow Public Select Incidents" on incidents for select using (true);
+create policy "Allow Public Select Vehicles" on incident_vehicles for select using (true);
+create policy "Allow Public Select People" on incident_involved_people for select using (true);
+create policy "Allow Public Select Attendance" on incident_attendance for select using (true);
