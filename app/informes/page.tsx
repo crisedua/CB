@@ -51,6 +51,13 @@ export default function InformesPage() {
 
             console.log('Found incidents:', incidents?.length, incidents);
 
+            // ALSO get ALL incidents to debug
+            const { data: allIncidents } = await supabase
+                .from('incidents')
+                .select('id, act_number, date, created_at');
+            
+            console.log('ALL incidents in database:', allIncidents?.length, allIncidents);
+
             if (error) throw error;
 
             // Calculate statistics
