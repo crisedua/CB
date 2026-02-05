@@ -36,7 +36,11 @@ export default function InformesPage() {
         try {
             const [year, monthNum] = month.split('-');
             const startDate = `${year}-${monthNum}-01`;
-            const endDate = new Date(parseInt(year), parseInt(monthNum), 0).toISOString().split('T')[0];
+            // Fix: Calculate last day of month correctly
+            const lastDay = new Date(parseInt(year), parseInt(monthNum), 0).getDate();
+            const endDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+
+            console.log('Date range:', startDate, 'to', endDate);
 
             // Get all incidents for the month
             const { data: incidents, error } = await supabase
@@ -44,6 +48,8 @@ export default function InformesPage() {
                 .select('*')
                 .gte('date', startDate)
                 .lte('date', endDate);
+
+            console.log('Found incidents:', incidents?.length, incidents);
 
             if (error) throw error;
 
