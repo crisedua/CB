@@ -414,85 +414,101 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                     </div>
                 )}
 
-                {/* Location */}
+                {/* All Extracted Fields Table */}
                 <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-4">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        <h2 className="font-bold text-lg">Ubicación</h2>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <div><span className="font-semibold">Dirección:</span> {incident.address}</div>
-                        {incident.corner && <div><span className="font-semibold">Esquina:</span> {incident.corner}</div>}
-                        {incident.area && <div><span className="font-semibold">Sector:</span> {incident.area}</div>}
-                        {incident.commune && <div><span className="font-semibold">Comuna:</span> {incident.commune}</div>}
-                    </div>
-                </div>
-
-                {/* Command */}
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-4">
-                        <User className="w-5 h-5 text-blue-600" />
-                        <h2 className="font-bold text-lg">Comando</h2>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <div className="text-gray-500 text-xs mb-1">A Cargo del Cuerpo</div>
-                            <div className="font-semibold">{incident.commander || '-'}</div>
-                        </div>
-                        <div>
-                            <div className="text-gray-500 text-xs mb-1">A Cargo de la Compañía</div>
-                            <div className="font-semibold">{incident.company_commander || '-'}</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Incident Details */}
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                    <div className="flex items-center gap-2 mb-4">
-                        <FileText className="w-5 h-5 text-orange-600" />
-                        <h2 className="font-bold text-lg">Detalles del Incidente</h2>
-                    </div>
-                    <div className="space-y-3 text-sm">
-                        {incident.nature && (
-                            <div>
-                                <div className="text-gray-500 text-xs mb-1">Naturaleza</div>
-                                <div className="font-semibold">{incident.nature}</div>
-                            </div>
-                        )}
-                        {incident.origin && (
-                            <div>
-                                <div className="text-gray-500 text-xs mb-1">Origen</div>
-                                <div>{incident.origin}</div>
-                            </div>
-                        )}
-                        {incident.cause && (
-                            <div>
-                                <div className="text-gray-500 text-xs mb-1">Causa</div>
-                                <div>{incident.cause}</div>
-                            </div>
-                        )}
+                    <h2 className="font-bold text-lg mb-4">Datos Extraídos</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-50 dark:bg-neutral-900/50">
+                                <tr>
+                                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Campo</th>
+                                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° Acto</td><td className="p-3">{incident.act_number || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° de Incendio</td><td className="p-3">{incident.incident_number || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Lista N°</td><td className="p-3">{incident.list_number || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Fecha</td><td className="p-3">{incident.date || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Hora del Acto</td><td className="p-3">{incident.time || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Llegada al Lugar</td><td className="p-3">{incident.arrival_time || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Retirada</td><td className="p-3">{incident.retired_time || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Hora de Regreso</td><td className="p-3">{incident.return_time || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">A Cargo del Cuerpo</td><td className="p-3">{incident.commander || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">A Cargo de la Compañía</td><td className="p-3">{incident.company_commander || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° Compañía</td><td className="p-3">{incident.company_number || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Depto</td><td className="p-3">{incident.department || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Piso</td><td className="p-3">{incident.floor || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Dirección Exacta</td><td className="p-3">{incident.address || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Esquina</td><td className="p-3">{incident.corner || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Comuna</td><td className="p-3">{incident.commune || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Población</td><td className="p-3">{incident.population || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Sector</td><td className="p-3">{incident.area || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Naturaleza del Lugar</td><td className="p-3">{incident.nature || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Lugar del Fuego o Rescate</td><td className="p-3">{incident.fire_rescue_location || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Origen</td><td className="p-3">{incident.origin || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Causa</td><td className="p-3">{incident.cause || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Daños</td><td className="p-3">{incident.damage || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Seguro</td><td className="p-3">{incident.has_insurance ? 'Sí' : incident.has_insurance === false ? 'No' : '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía de Seguros</td><td className="p-3">{incident.insurance_company || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Móviles Asistentes</td><td className="p-3">{incident.mobile_units?.join(', ') || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Conductores</td><td className="p-3">{incident.insurance_conductors || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Otras Cías</td><td className="p-3">{incident.other_classes || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 5ª</td><td className="p-3">{incident.company_quinta || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 1ª</td><td className="p-3">{incident.company_primera || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 2ª</td><td className="p-3">{incident.company_segunda || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 3ª</td><td className="p-3">{incident.company_tercera || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 4ª</td><td className="p-3">{incident.company_cuarta || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 6ª</td><td className="p-3">{incident.company_sexta || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 7ª</td><td className="p-3">{incident.company_septima || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Compañía 8ª</td><td className="p-3">{incident.company_octava || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">BC/BP</td><td className="p-3">{incident.company_bc_bp || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Corrección</td><td className="p-3">{incident.attendance_correction || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Sector Rural</td><td className="p-3">{incident.sector_rural ? 'Sí' : incident.sector_rural === false ? 'No' : '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Sector Lugar</td><td className="p-3">{incident.sector_location || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Sectores Asistentes</td><td className="p-3">{incident.sector_numbers?.join(', ') || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Cant. Lesionados</td><td className="p-3">{incident.cant_lesionados || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Cant. Involucrados</td><td className="p-3">{incident.cant_involucrados || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Cant. Damnificados</td><td className="p-3">{incident.cant_damnificados || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Cant. 7-3</td><td className="p-3">{incident.cant_7_3 || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Observaciones</td><td className="p-3 whitespace-pre-wrap">{incident.observations || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Otras Observaciones</td><td className="p-3 whitespace-pre-wrap">{incident.other_observations || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Informe Elaborado Por</td><td className="p-3">{incident.report_prepared_by || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Lista Confeccionada Por</td><td className="p-3">{incident.list_prepared_by || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Oficial/Bombero a Cargo</td><td className="p-3">{incident.officer_in_charge || '-'}</td></tr>
+                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Llamado de Comandancia</td><td className="p-3">{incident.called_by_command || '-'}</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
                 {/* Vehicles */}
                 {vehicles.length > 0 && (
                     <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Car className="w-5 h-5 text-blue-600" />
-                            <h2 className="font-bold text-lg">Vehículos ({vehicles.length})</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {vehicles.map((vehicle, idx) => (
-                                <div key={idx} className="p-3 bg-gray-50 dark:bg-neutral-900/50 rounded-lg">
-                                    <div className="font-semibold">{vehicle.brand} {vehicle.model}</div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                        Patente: {vehicle.plate}
-                                    </div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                        Conductor: {vehicle.driver} - {vehicle.run}
-                                    </div>
-                                </div>
-                            ))}
+                        <h2 className="font-bold text-lg mb-4">Vehículos ({vehicles.length})</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 dark:bg-neutral-900/50">
+                                    <tr>
+                                        <th className="text-left p-3">Marca</th>
+                                        <th className="text-left p-3">Modelo</th>
+                                        <th className="text-left p-3">Patente</th>
+                                        <th className="text-left p-3">Conductor</th>
+                                        <th className="text-left p-3">RUN</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+                                    {vehicles.map((vehicle, idx) => (
+                                        <tr key={idx}>
+                                            <td className="p-3">{vehicle.brand || '-'}</td>
+                                            <td className="p-3">{vehicle.model || '-'}</td>
+                                            <td className="p-3">{vehicle.plate || '-'}</td>
+                                            <td className="p-3">{vehicle.driver || '-'}</td>
+                                            <td className="p-3">{vehicle.run || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
@@ -500,54 +516,66 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                 {/* People */}
                 {people.length > 0 && (
                     <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Users className="w-5 h-5 text-blue-600" />
-                            <h2 className="font-bold text-lg">Personas Involucradas ({people.length})</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {people.map((person, idx) => (
-                                <div key={idx} className="p-3 bg-gray-50 dark:bg-neutral-900/50 rounded-lg">
-                                    <div className="font-semibold">{person.name}</div>
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                                        RUN: {person.run || 'N/A'}
-                                    </div>
-                                    {person.attended_by_132 && (
-                                        <div className="text-sm text-red-600 font-semibold mt-1">
-                                            ✓ Atendido por 132
-                                        </div>
-                                    )}
-                                    {person.status && (
-                                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                                            Estado: {person.status}
-                                        </div>
-                                    )}
-                                    {person.observation && (
-                                        <div className="text-sm text-gray-500 italic mt-1">
-                                            {person.observation}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                        <h2 className="font-bold text-lg mb-4">Personas Involucradas ({people.length})</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 dark:bg-neutral-900/50">
+                                    <tr>
+                                        <th className="text-left p-3">Nombre</th>
+                                        <th className="text-left p-3">RUN</th>
+                                        <th className="text-left p-3">Atendido 132</th>
+                                        <th className="text-left p-3">Estado</th>
+                                        <th className="text-left p-3">Observación</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+                                    {people.map((person, idx) => (
+                                        <tr key={idx}>
+                                            <td className="p-3">{person.name || '-'}</td>
+                                            <td className="p-3">{person.run || '-'}</td>
+                                            <td className="p-3">{person.attended_by_132 ? '✓ Sí' : 'No'}</td>
+                                            <td className="p-3">{person.status || '-'}</td>
+                                            <td className="p-3">{person.observation || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
 
-                {/* Observations */}
-                {(incident.observations || incident.other_observations) && (
+                {/* Institutions */}
+                {institutions.length > 0 && (
                     <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                        <h2 className="font-bold text-lg mb-4">Observaciones</h2>
-                        {incident.observations && (
-                            <div className="mb-4">
-                                <div className="text-sm text-gray-500 mb-2">Observaciones Principales</div>
-                                <div className="text-sm whitespace-pre-wrap">{incident.observations}</div>
-                            </div>
-                        )}
-                        {incident.other_observations && (
-                            <div>
-                                <div className="text-sm text-gray-500 mb-2">Otras Observaciones</div>
-                                <div className="text-sm whitespace-pre-wrap">{incident.other_observations}</div>
-                            </div>
-                        )}
+                        <h2 className="font-bold text-lg mb-4">Instituciones Presentes ({institutions.length})</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 dark:bg-neutral-900/50">
+                                    <tr>
+                                        <th className="text-left p-3">Tipo</th>
+                                        <th className="text-left p-3">Nombre</th>
+                                        <th className="text-left p-3">Grado</th>
+                                        <th className="text-left p-3">Comisaría</th>
+                                        <th className="text-left p-3">Cargo</th>
+                                        <th className="text-left p-3">Entidad</th>
+                                        <th className="text-left p-3">Móvil</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
+                                    {institutions.map((inst, idx) => (
+                                        <tr key={idx}>
+                                            <td className="p-3 capitalize">{inst.institution_type || '-'}</td>
+                                            <td className="p-3">{inst.name || '-'}</td>
+                                            <td className="p-3">{inst.grade || '-'}</td>
+                                            <td className="p-3">{inst.comisaria || '-'}</td>
+                                            <td className="p-3">{inst.cargo || '-'}</td>
+                                            <td className="p-3">{inst.entidad || '-'}</td>
+                                            <td className="p-3">{inst.movil || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
