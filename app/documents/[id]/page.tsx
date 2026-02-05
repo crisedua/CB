@@ -9,20 +9,56 @@ interface Incident {
     id: string;
     created_at: string;
     act_number: string;
+    incident_number: string;
+    list_number: string;
     date: string;
     time: string;
+    arrival_time: string;
     return_time: string;
+    retired_time: string;
     address: string;
     corner: string;
     area: string;
     commune: string;
+    population: string;
     commander: string;
     company_commander: string;
+    company_number: string;
+    department: string;
+    floor: string;
     nature: string;
+    fire_rescue_location: string;
     origin: string;
     cause: string;
+    damage: string;
+    has_insurance: boolean;
+    insurance_company: string;
+    mobile_units: string[];
+    insurance_conductors: string;
+    other_classes: string;
+    company_quinta: number;
+    company_primera: number;
+    company_segunda: number;
+    company_tercera: number;
+    company_cuarta: number;
+    company_sexta: number;
+    company_septima: number;
+    company_octava: number;
+    company_bc_bp: number;
+    attendance_correction: string;
+    sector_rural: boolean;
+    sector_location: string;
+    sector_numbers: number[];
+    cant_lesionados: number;
+    cant_involucrados: number;
+    cant_damnificados: number;
+    cant_7_3: number;
     observations: string;
     other_observations: string;
+    report_prepared_by: string;
+    list_prepared_by: string;
+    officer_in_charge: string;
+    called_by_command: string;
     raw_data: any;
 }
 
@@ -42,10 +78,22 @@ interface Person {
     status: string;
 }
 
+interface Institution {
+    institution_type: string;
+    present: boolean;
+    name: string;
+    grade: string;
+    comisaria: string;
+    movil: string;
+    cargo: string;
+    entidad: string;
+}
+
 export default function DocumentDetailPage({ params }: { params: { id: string } }) {
     const [incident, setIncident] = useState<Incident | null>(null);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [people, setPeople] = useState<Person[]>([]);
+    const [institutions, setInstitutions] = useState<Institution[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -76,6 +124,12 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                 .select('*')
                 .eq('incident_id', params.id);
             setPeople(peopleData || []);
+
+            const { data: institutionsData } = await supabase
+                .from('incident_institutions')
+                .select('*')
+                .eq('incident_id', params.id);
+            setInstitutions(institutionsData || []);
 
         } catch (e) {
             console.error('Error loading incident:', e);

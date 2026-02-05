@@ -112,19 +112,78 @@ export default function ScanPage() {
 
         try {
             const { error, data: insertedData } = await supabase.from('incidents').insert({
+                // Basic info
+                act_number: data.act_number,
+                incident_number: data.incident_number,
+                list_number: data.list_number,
                 date: formattedDate,
                 time: data.time,
-                address: data.address,
-                corner: data.corner,
-                area: data.area || data.population,
+                arrival_time: data.arrival_time,
+                return_time: data.return_time,
+                retired_time: data.retired_time,
+                
+                // Command
                 commander: data.commander,
                 company_commander: data.company_commander,
-                act_number: data.act_number,
+                company_number: data.company_number,
+                department: data.department,
+                floor: data.floor,
+                
+                // Location
+                address: data.address,
+                corner: data.corner,
+                area: data.area,
+                commune: data.commune,
+                population: data.population,
+                
+                // Incident details
                 nature: data.nature,
+                fire_rescue_location: data.fire_rescue_location,
                 origin: data.origin,
                 cause: data.cause,
+                damage: data.damage,
+                
+                // Insurance
+                has_insurance: data.insurance?.has_insurance,
+                insurance_company: data.insurance?.company,
+                mobile_units: data.insurance?.mobile_units,
+                insurance_conductors: data.insurance?.conductors,
+                other_classes: data.insurance?.other_classes,
+                
+                // Company attendance
+                company_quinta: data.company_attendance?.quinta,
+                company_primera: data.company_attendance?.primera,
+                company_segunda: data.company_attendance?.segunda,
+                company_tercera: data.company_attendance?.tercera,
+                company_cuarta: data.company_attendance?.cuarta,
+                company_sexta: data.company_attendance?.sexta,
+                company_septima: data.company_attendance?.septima,
+                company_octava: data.company_attendance?.octava,
+                company_bc_bp: data.company_attendance?.bc_bp,
+                attendance_correction: data.attendance_correction,
+                
+                // Sector
+                sector_rural: data.attendance_sector?.rural,
+                sector_location: data.attendance_sector?.location,
+                sector_numbers: data.attendance_sector?.sector_numbers,
+                
+                // Counts
+                cant_lesionados: data.cant_lesionados,
+                cant_involucrados: data.cant_involucrados,
+                cant_damnificados: data.cant_damnificados,
+                cant_7_3: data.cant_7_3,
+                
+                // Observations
                 observations: data.observations,
                 other_observations: data.other_observations,
+                
+                // Report metadata
+                report_prepared_by: data.report_prepared_by,
+                list_prepared_by: data.list_prepared_by,
+                officer_in_charge: data.officer_in_charge,
+                called_by_command: data.called_by_command,
+                
+                // Raw data
                 raw_data: data
             }).select().single();
 
@@ -168,6 +227,22 @@ export default function ScanPage() {
                     present: a.present !== false // default to true
                 }));
                 await supabase.from('incident_attendance').insert(attendance);
+            }
+
+            // Insert institutions if any
+            if (data.institutions?.length > 0 && insertedData) {
+                const institutions = data.institutions.map((inst: any) => ({
+                    incident_id: insertedData.id,
+                    institution_type: inst.type,
+                    present: inst.present !== false,
+                    name: inst.name,
+                    grade: inst.grade,
+                    comisaria: inst.comisaria,
+                    movil: inst.movil,
+                    cargo: inst.cargo,
+                    entidad: inst.entidad
+                }));
+                await supabase.from('incident_institutions').insert(institutions);
             }
 
             alert('¡Informe guardado con éxito!');
