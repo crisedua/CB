@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, MapPin, User, Car, Users, Building2, FileText, Trash2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, User, Car, Users, Building2, FileText, Trash2, RefreshCw, Edit2, Save, X } from 'lucide-react';
 
 interface Incident {
     id: string;
@@ -97,6 +97,8 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     const [institutions, setInstitutions] = useState<Institution[]>([]);
     const [loading, setLoading] = useState(true);
     const [rescanning, setRescanning] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [editedIncident, setEditedIncident] = useState<Incident | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -157,6 +159,101 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
         } catch (e) {
             console.error('Error deleting:', e);
             alert('Error al eliminar');
+        }
+    };
+
+    const handleEdit = () => {
+        setEditedIncident({ ...incident! });
+        setEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setEditedIncident(null);
+        setEditing(false);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editedIncident) return;
+
+        try {
+            // Convert date if needed
+            let formattedDate = editedIncident.date;
+            if (formattedDate && formattedDate.includes('/')) {
+                const parts = formattedDate.split('/');
+                if (parts.length === 3) {
+                    formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+
+            const { error } = await supabase
+                .from('incidents')
+                .update({
+                    act_number: editedIncident.act_number,
+                    incident_number: editedIncident.incident_number,
+                    list_number: editedIncident.list_number,
+                    date: formattedDate,
+                    time: editedIncident.time,
+                    arrival_time: editedIncident.arrival_time,
+                    return_time: editedIncident.return_time,
+                    retired_time: editedIncident.retired_time,
+                    commander: editedIncident.commander,
+                    company_commander: editedIncident.company_commander,
+                    company_number: editedIncident.company_number,
+                    department: editedIncident.department,
+                    floor: editedIncident.floor,
+                    address: editedIncident.address,
+                    corner: editedIncident.corner,
+                    area: editedIncident.area,
+                    commune: editedIncident.commune,
+                    population: editedIncident.population,
+                    nature: editedIncident.nature,
+                    fire_rescue_location: editedIncident.fire_rescue_location,
+                    origin: editedIncident.origin,
+                    cause: editedIncident.cause,
+                    damage: editedIncident.damage,
+                    has_insurance: editedIncident.has_insurance,
+                    insurance_company: editedIncident.insurance_company,
+                    insurance_conductors: editedIncident.insurance_conductors,
+                    other_classes: editedIncident.other_classes,
+                    company_quinta: editedIncident.company_quinta,
+                    company_primera: editedIncident.company_primera,
+                    company_segunda: editedIncident.company_segunda,
+                    company_tercera: editedIncident.company_tercera,
+                    company_cuarta: editedIncident.company_cuarta,
+                    company_sexta: editedIncident.company_sexta,
+                    company_septima: editedIncident.company_septima,
+                    company_octava: editedIncident.company_octava,
+                    company_bc_bp: editedIncident.company_bc_bp,
+                    attendance_correction: editedIncident.attendance_correction,
+                    sector_rural: editedIncident.sector_rural,
+                    sector_location: editedIncident.sector_location,
+                    cant_lesionados: editedIncident.cant_lesionados,
+                    cant_involucrados: editedIncident.cant_involucrados,
+                    cant_damnificados: editedIncident.cant_damnificados,
+                    cant_7_3: editedIncident.cant_7_3,
+                    observations: editedIncident.observations,
+                    other_observations: editedIncident.other_observations,
+                    report_prepared_by: editedIncident.report_prepared_by,
+                    list_prepared_by: editedIncident.list_prepared_by,
+                    officer_in_charge: editedIncident.officer_in_charge,
+                    called_by_command: editedIncident.called_by_command
+                })
+                .eq('id', params.id);
+
+            if (error) throw error;
+
+            setIncident(editedIncident);
+            setEditing(false);
+            alert('Cambios guardados');
+        } catch (e: any) {
+            console.error('Error saving:', e);
+            alert('Error al guardar: ' + e.message);
+        }
+    };
+
+    const handleFieldChange = (field: keyof Incident, value: any) => {
+        if (editedIncident) {
+            setEditedIncident({ ...editedIncident, [field]: value });
         }
     };
 
@@ -369,22 +466,50 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        {incident.scanned_images && incident.scanned_images.length > 0 && (
-                            <button
-                                onClick={handleRescan}
-                                disabled={rescanning}
-                                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 disabled:opacity-50"
-                            >
-                                <RefreshCw className={`w-5 h-5 ${rescanning ? 'animate-spin' : ''}`} />
-                                {rescanning ? 'Re-escaneando...' : 'Re-escanear'}
-                            </button>
+                        {editing ? (
+                            <>
+                                <button
+                                    onClick={handleCancelEdit}
+                                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg border border-gray-300 dark:border-neutral-600"
+                                >
+                                    <X className="w-5 h-5" />
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    className="flex items-center gap-2 px-4 py-2 text-white bg-green-600 hover:bg-green-700 rounded-lg"
+                                >
+                                    <Save className="w-5 h-5" />
+                                    Guardar
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleEdit}
+                                    className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded-lg border border-gray-300 dark:border-neutral-600"
+                                >
+                                    <Edit2 className="w-5 h-5" />
+                                    Editar
+                                </button>
+                                {incident.scanned_images && incident.scanned_images.length > 0 && (
+                                    <button
+                                        onClick={handleRescan}
+                                        disabled={rescanning}
+                                        className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 disabled:opacity-50"
+                                    >
+                                        <RefreshCw className={`w-5 h-5 ${rescanning ? 'animate-spin' : ''}`} />
+                                        {rescanning ? 'Re-escaneando...' : 'Re-escanear'}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleDelete}
+                                    className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </button>
+                            </>
                         )}
-                        <button
-                            onClick={handleDelete}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                        >
-                            <Trash2 className="w-5 h-5" />
-                        </button>
                     </div>
                 </div>
             </header>
@@ -416,19 +541,61 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
 
                 {/* All Extracted Fields Table */}
                 <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
-                    <h2 className="font-bold text-lg mb-4">Datos Extraídos</h2>
+                    <h2 className="font-bold text-lg mb-4">Datos Extraídos {editing && <span className="text-sm text-blue-600">(Modo Edición)</span>}</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 dark:bg-neutral-900/50">
                                 <tr>
-                                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Campo</th>
+                                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300 w-1/3">Campo</th>
                                     <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-300">Valor</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-neutral-700">
-                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° Acto</td><td className="p-3">{incident.act_number || '-'}</td></tr>
-                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° de Incendio</td><td className="p-3">{incident.incident_number || '-'}</td></tr>
-                                <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Lista N°</td><td className="p-3">{incident.list_number || '-'}</td></tr>
+                                <tr>
+                                    <td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° Acto</td>
+                                    <td className="p-3">
+                                        {editing ? (
+                                            <input
+                                                type="text"
+                                                value={editedIncident?.act_number || ''}
+                                                onChange={(e) => handleFieldChange('act_number', e.target.value)}
+                                                className="w-full px-2 py-1 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                                            />
+                                        ) : (
+                                            incident.act_number || '-'
+                                        )}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="p-3 font-medium text-gray-600 dark:text-gray-400">N° de Incendio</td>
+                                    <td className="p-3">
+                                        {editing ? (
+                                            <input
+                                                type="text"
+                                                value={editedIncident?.incident_number || ''}
+                                                onChange={(e) => handleFieldChange('incident_number', e.target.value)}
+                                                className="w-full px-2 py-1 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                                            />
+                                        ) : (
+                                            incident.incident_number || '-'
+                                        )}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="p-3 font-medium text-gray-600 dark:text-gray-400">Lista N°</td>
+                                    <td className="p-3">
+                                        {editing ? (
+                                            <input
+                                                type="text"
+                                                value={editedIncident?.list_number || ''}
+                                                onChange={(e) => handleFieldChange('list_number', e.target.value)}
+                                                className="w-full px-2 py-1 border rounded dark:bg-neutral-700 dark:border-neutral-600"
+                                            />
+                                        ) : (
+                                            incident.list_number || '-'
+                                        )}
+                                    </td>
+                                </tr>
                                 <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Fecha</td><td className="p-3">{incident.date || '-'}</td></tr>
                                 <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Hora del Acto</td><td className="p-3">{incident.time || '-'}</td></tr>
                                 <tr><td className="p-3 font-medium text-gray-600 dark:text-gray-400">Llegada al Lugar</td><td className="p-3">{incident.arrival_time || '-'}</td></tr>
