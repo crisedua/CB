@@ -117,7 +117,6 @@ export default function ScanPage() {
             
             console.log('Starting image upload process...');
             console.log('Number of images:', images.length);
-            console.log('Supabase URL:', supabase.storage.url);
             
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
