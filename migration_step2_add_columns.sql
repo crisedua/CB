@@ -2,6 +2,7 @@
 -- Run this after step 1
 
 ALTER TABLE incidents 
+ADD COLUMN IF NOT EXISTS scanned_images text[],
 ADD COLUMN IF NOT EXISTS incident_number text,
 ADD COLUMN IF NOT EXISTS list_number text,
 ADD COLUMN IF NOT EXISTS arrival_time time,

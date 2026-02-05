@@ -111,7 +111,50 @@ export default function ScanPage() {
         }
 
         try {
+            // Upload images to Supabase Storage
+            const imageUrls: string[] = [];
+            
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+                const timestamp = Date.now();
+                const fileName = `incident_${timestamp}_page${i + 1}.jpg`;
+                
+                // Convert base64 to blob
+                const base64Data = image.split(',')[1];
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let j = 0; j < byteCharacters.length; j++) {
+                    byteNumbers[j] = byteCharacters.charCodeAt(j);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'image/jpeg' });
+                
+                // Upload to Supabase Storage
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('incident-scans')
+                    .upload(fileName, blob, {
+                        contentType: 'image/jpeg',
+                        cacheControl: '3600'
+                    });
+                
+                if (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    throw new Error(`Error al subir imagen ${i + 1}: ${uploadError.message}`);
+                }
+                
+                // Get public URL
+                const { data: urlData } = supabase.storage
+                    .from('incident-scans')
+                    .getPublicUrl(fileName);
+                
+                imageUrls.push(urlData.publicUrl);
+            }
+
+            // Save incident with image URLs
             const { error, data: insertedData } = await supabase.from('incidents').insert({
+                // Scanned images
+                scanned_images: imageUrls,
+                
                 // Basic info
                 act_number: data.act_number,
                 incident_number: data.incident_number,

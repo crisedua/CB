@@ -13,6 +13,9 @@ CREATE TABLE incidents (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   
+  -- Scanned images
+  scanned_images text[], -- Array of image URLs from Supabase Storage
+  
   -- Basic Info
   act_number text,
   incident_number text,

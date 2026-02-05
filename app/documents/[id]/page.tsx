@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, MapPin, User, Car, Users, Building2, FileText, Tra
 interface Incident {
     id: string;
     created_at: string;
+    scanned_images: string[];
     act_number: string;
     incident_number: string;
     list_number: string;
@@ -213,6 +214,30 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
             </header>
 
             <div className="space-y-4">
+                {/* Scanned Images */}
+                {incident.scanned_images && incident.scanned_images.length > 0 && (
+                    <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
+                        <h2 className="font-bold text-lg mb-4">Documentos Escaneados</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {incident.scanned_images.map((imageUrl, idx) => (
+                                <div key={idx} className="relative group">
+                                    <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-semibold z-10">
+                                        Página {idx + 1}
+                                    </div>
+                                    <img 
+                                        src={imageUrl} 
+                                        alt={`Página ${idx + 1}`}
+                                        className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 cursor-pointer hover:shadow-lg transition-shadow"
+                                        onClick={() => window.open(imageUrl, '_blank')}
+                                    />
+                                    <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity rounded-lg pointer-events-none"></div>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-4">Haz clic en una imagen para verla en tamaño completo</p>
+                    </div>
+                )}
+
                 {/* Location */}
                 <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-gray-200 dark:border-neutral-700">
                     <div className="flex items-center gap-2 mb-4">
