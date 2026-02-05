@@ -115,10 +115,16 @@ export default function ScanPage() {
             const imageUrls: string[] = [];
             let uploadSuccess = true;
             
+            console.log('Starting image upload process...');
+            console.log('Number of images:', images.length);
+            console.log('Supabase URL:', supabase.storage.url);
+            
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
                 const timestamp = Date.now();
                 const fileName = `incident_${timestamp}_page${i + 1}.jpg`;
+                
+                console.log(`Processing image ${i + 1}/${images.length}...`);
                 
                 try {
                     // Convert base64 to blob
@@ -131,6 +137,8 @@ export default function ScanPage() {
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: 'image/jpeg' });
                     
+                    console.log(`Uploading ${fileName} (${blob.size} bytes)...`);
+                    
                     // Upload to Supabase Storage
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('incident-scans')
@@ -141,17 +149,20 @@ export default function ScanPage() {
                         });
                     
                     if (uploadError) {
-                        console.error('Upload error:', uploadError);
+                        console.error('Upload error details:', uploadError);
                         uploadSuccess = false;
-                        alert(`No se pudo subir la imagen ${i + 1}. Asegúrate de que el bucket 'incident-scans' existe en Supabase Storage.\n\nError: ${uploadError.message}\n\nLos datos se guardarán sin las imágenes.`);
+                        alert(`No se pudo subir la imagen ${i + 1}.\n\nError: ${uploadError.message}\n\nVerifica:\n1. El bucket 'incident-scans' existe en Supabase Storage\n2. El bucket es público\n3. Las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY están configuradas\n\nLos datos se guardarán sin las imágenes.`);
                         break;
                     }
+                    
+                    console.log('Upload successful:', uploadData);
                     
                     // Get public URL
                     const { data: urlData } = supabase.storage
                         .from('incident-scans')
                         .getPublicUrl(fileName);
                     
+                    console.log('Public URL:', urlData.publicUrl);
                     imageUrls.push(urlData.publicUrl);
                 } catch (imgError: any) {
                     console.error(`Error processing image ${i + 1}:`, imgError);
@@ -160,6 +171,9 @@ export default function ScanPage() {
                     break;
                 }
             }
+
+            console.log('Upload complete. Success:', uploadSuccess);
+            console.log('Image URLs:', imageUrls);
 
             // Save incident with image URLs (or empty array if upload failed)
             const { error, data: insertedData } = await supabase.from('incidents').insert({
