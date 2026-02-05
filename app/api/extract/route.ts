@@ -26,104 +26,125 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-You are an expert at extracting data from handwritten fire department incident reports.
+You are an expert at extracting data from handwritten Chilean fire department incident reports.
+${images.length > 1 ? `This form has ${images.length} pages. Read ALL pages and combine the information.` : ''}
 
-${images.length > 1 ? `This form has ${images.length} pages. Combine information from ALL pages.` : ''}
+CRITICAL: Read EVERY field on the form, even if handwriting is messy. Extract ALL visible text.
 
-Carefully read this Chilean fire department form and extract ALL visible information into a JSON object.
-
-
-
-Extract these fields (use null if not present):
+Return a complete JSON object with these exact fields:
 
 {
-  "act_number": "N° Acto",
-  "date": "DD/MM/YYYY",
-  "time": "HH:MM",
-  "arrival_time": "Llegada al Lugar (HH:MM)",
-  "withdrawal_time": "Retirada (HH:MM)",
-  "return_time": "Hora de Regreso (HH:MM)",
-  "commander": "A Cargo del Cuerpo (Extract any name in this section)",
-  "company_commander": "A Cargo de la Compañía (Extract any name)",
-  "address": "Dirección Exacta (Full address)",
-  "street_number": "N° (Dirección)",
-  "apartment": "Depto",
-  "floor": "Piso",
-  "corner": "Esquina (Cross street)",
-  "commune": "Comuna",
-  "population": "Población",
-  "area": "Sector",
-  "nature": "Naturaleza del lugar (e.g. Casa habitacion, Pastizales)",
-  "fire_or_rescue_place": "Lugar del fuego o Rescate",
-  "origin": "Origen (Detailed description)",
-  "cause": "Causa (Detailed description)",
-  "fire_type": "N° de Incendio",
+  "act_number": "Acto: (top left)",
+  "incident_number": "N° de Incendio: (top right)",
+  "list_number": "Lista N°: (top right)",
+  "date": "Fecha (Día, mes y año): DD/MM/YYYY",
+  "time": "Hora del Acto: HH:MM",
+  "arrival_time": "Llegada al Lugar: HH:MM",
+  "retired_time": "Retirada: HH:MM",
+  "return_time": "Hora de Regreso: HH:MM",
+  
+  "commander": "A Cargo del Cuerpo: (full name)",
+  "company_commander": "A Cargo de la Compañía: (full name)",
+  "company_number": "N°: (next to company commander)",
+  "department": "Depto:",
+  "floor": "Piso:",
+  
+  "address": "Dirección Exacta: (full street address)",
+  "corner": "Esquina (más próx.):",
+  "commune": "Comuna:",
+  "population": "Población:",
+  "area": "Sector:",
+  
+  "nature": "Naturaleza del lugar: (e.g., Casa habitación, Loza Hall)",
+  "fire_rescue_location": "Lugar del fuego o Rescate: (detailed location)",
+  "origin": "Origen: (cause origin)",
+  "cause": "Causa: (cause description)",
+  
   "vehicles": [
-    {
-      "brand": "Marca",
-      "model": "Modelo",
-      "plate": "Patente",
-      "driver": "Nombre Conductor",
-      "run": "RUN"
-    }
+    "Extract ALL rows from Marca/Modelo/Patente/Nombre Conductor/RUN table",
+    {"brand": "Marca", "model": "Modelo", "plate": "Patente", "driver": "Nombre Conductor", "run": "RUN"}
   ],
+  
   "insurance": {
-    "has_insurance": true/false (Check for ANY indication of insurance),
-    "company": "Compañía de Seguros",
-    "mobile_units": ["R-5", "RCS"],
-    "conductors": "Conductor(es)"
+    "has_insurance": "SI or NO checkbox",
+    "company": "Compañía de Seguros:",
+    "mobile_units": ["Extract ALL checked: R-5, RX-2, RX-5, RCS"],
+    "conductors": "Conductor(es): (all names listed)",
+    "other_classes": "Otras Cías: (text)"
   },
+  
   "company_attendance": {
-    "quinta": 0,
-    "primera": 0,
-    "segunda": 0,
-    "tercera": 0,
-    "cuarta": 0,
-    "sexta": 0,
-    "septima": 0,
-    "octava": 0,
-    "bc_bp": 0
+    "quinta": "5ª column number",
+    "primera": "1ª column number",
+    "segunda": "2ª column number",
+    "tercera": "3ª column number",
+    "cuarta": "4ª column number",
+    "sexta": "6ª column number",
+    "septima": "7ª column number",
+    "octava": "8ª column number",
+    "bc_bp": "BC/BP column number"
   },
-  "cant_lesionados": 0,
-  "cant_involucrados": 0,
-  "cant_damnificados": 0,
+  
+  "attendance_sector": {
+    "rural": "Rural checkbox true/false",
+    "location": "Lugar: text",
+    "sector_numbers": "Asiste Sector: [1,2,3,4,5,6] checked boxes"
+  },
+  
+  "attendance_correction": "Corrección: text",
+  
+  "cant_lesionados": "Cant. Lesionados: number",
+  "cant_involucrados": "Cant. Involucrados: number",
+  "cant_damnificados": "Cant. Damnificados: number",
+  "cant_7_3": "Cant. 7-3: number",
+  
   "involved_people": [
+    "Extract ALL rows from people table",
     {
       "name": "Nombre Completo",
       "run": "RUN",
-      "attended_by_132": true/false (Check 'Se niega a atencion' or similar),
-      "observation": "Observación",
-      "moved_by": "Trasladado por 1-2 (Rechaza traslado)",
-      "status": "Estado/Observación"
+      "attended_by_132": "SI/NO checkbox as boolean",
+      "observation": "Observación (Trasladado por 1-2, Rechaza traslado, etc.)",
+      "status": "Estado: Hospitalizado, etc."
     }
   ],
-  "observations": "Full text from Observaciones section (Transcribe EXACTLY as written)",
-  "other_observations": "Full text from Otras Observaciones",
-  "institutions_present": {
-    "carabineros": true/false,
-    "samu": true/false,
-    "pdi": true/false,
-    "prensa": true/false,
-    "sernapred": true/false,
-    "saesa": true/false,
-    "suralis": true/false,
-    "ong": true/false,
-    "other": "Otros"
-  },
-  "report_made_by": "Informe elaborado por (Name)",
-  "command_call": "Llamado de Comandancia (Name/Number)",
-  "signature_name": "Oficial O Bombero a Cargo (Name under signature/mark)"
+  
+  "observations": "Observaciones: (FULL TEXT - transcribe everything written)",
+  "other_observations": "Otras Observaciones: (FULL TEXT)",
+  
+  "institutions": [
+    "Extract from bottom section - En el lugar checkboxes AND detailed entries",
+    {
+      "type": "carabineros/ambulancia/pdi/prensa/bernagred/saesa/suralic/ong",
+      "present": true,
+      "name": "Nombre Completo (for carabineros/ambulancia)",
+      "grade": "Grado (for carabineros)",
+      "comisaria": "Comisaría (for carabineros)",
+      "movil": "Móvil number",
+      "cargo": "Cargo (for ambulancia)",
+      "entidad": "Entidad (for ambulancia)"
+    }
+  ],
+  
+  "report_prepared_by": "Informe elaborado por: Incendio: (name)",
+  "list_prepared_by": "Lista confeccionada por: (name)",
+  "officer_in_charge": "Oficial O Bombero a Cargo: (name - look for signature/name at bottom)",
+  "called_by_command": "Llamado de Comandancia: (text)"
 }
 
-CRITICAL RULES:
-- Extract ALL handwritten text from every section across ALL pages
-- For tables (vehicles, people), extract EVERY row that has any data
-- For checkboxes marked with ✓ or X, set to true
-- Read all numbers from the attendance grid carefully
-- Include full observation text
-- If a field is empty, use null
-- If text is illegible, use "illegible"
-${images.length > 1 ? '- Combine data from both pages into a single complete JSON object' : ''}
+EXTRACTION INSTRUCTIONS:
+1. Read EVERY section of the form from top to bottom
+2. Extract ALL handwritten text, even if messy or abbreviated
+3. For tables (vehicles, people), get EVERY row with ANY data
+4. For checkboxes (✓, X, filled), return true if marked
+5. For attendance grid, read numbers in each company column carefully
+6. For institutions, check BOTH the checkboxes AND the detailed name/info sections below
+7. Transcribe observations EXACTLY as written
+8. If field is empty, use null
+9. If illegible, use "illegible"
+${images.length > 1 ? '10. Combine ALL data from both pages' : ''}
+
+Return ONLY valid JSON, no markdown.
 `;
 
     // Build content array with all images
