@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Calendar, MapPin, User, Car, Users, Building2, FileText, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, User, Car, Users, Building2, FileText, Trash2, RefreshCw } from 'lucide-react';
 
 interface Incident {
     id: string;
@@ -96,6 +96,7 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
     const [people, setPeople] = useState<Person[]>([]);
     const [institutions, setInstitutions] = useState<Institution[]>([]);
     const [loading, setLoading] = useState(true);
+    const [rescanning, setRescanning] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -159,6 +160,169 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
         }
     };
 
+    const handleRescan = async () => {
+        if (!incident?.scanned_images || incident.scanned_images.length === 0) {
+            alert('No hay imágenes escaneadas para re-procesar');
+            return;
+        }
+
+        if (!confirm('¿Re-escanear este documento? Esto actualizará todos los datos extraídos.')) return;
+
+        setRescanning(true);
+        try {
+            // Fetch images from URLs and convert to base64
+            const imagePromises = incident.scanned_images.map(async (url) => {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                return new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+            });
+
+            const images = await Promise.all(imagePromises);
+
+            // Call extraction API
+            const res = await fetch('/api/extract', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ images }),
+            });
+
+            const extractedData = await res.json();
+
+            if (!res.ok) {
+                throw new Error(extractedData.error || 'Error al extraer datos');
+            }
+
+            // Convert date format
+            let formattedDate = null;
+            if (extractedData.date) {
+                const parts = extractedData.date.split('/');
+                if (parts.length === 3) {
+                    formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            }
+
+            // Update incident
+            const { error: updateError } = await supabase
+                .from('incidents')
+                .update({
+                    act_number: extractedData.act_number,
+                    incident_number: extractedData.incident_number,
+                    list_number: extractedData.list_number,
+                    date: formattedDate,
+                    time: extractedData.time,
+                    arrival_time: extractedData.arrival_time,
+                    return_time: extractedData.return_time,
+                    retired_time: extractedData.retired_time,
+                    commander: extractedData.commander,
+                    company_commander: extractedData.company_commander,
+                    company_number: extractedData.company_number,
+                    department: extractedData.department,
+                    floor: extractedData.floor,
+                    address: extractedData.address,
+                    corner: extractedData.corner,
+                    area: extractedData.area,
+                    commune: extractedData.commune,
+                    population: extractedData.population,
+                    nature: extractedData.nature,
+                    fire_rescue_location: extractedData.fire_rescue_location,
+                    origin: extractedData.origin,
+                    cause: extractedData.cause,
+                    damage: extractedData.damage,
+                    has_insurance: extractedData.insurance?.has_insurance,
+                    insurance_company: extractedData.insurance?.company,
+                    mobile_units: extractedData.insurance?.mobile_units,
+                    insurance_conductors: extractedData.insurance?.conductors,
+                    other_classes: extractedData.insurance?.other_classes,
+                    company_quinta: extractedData.company_attendance?.quinta,
+                    company_primera: extractedData.company_attendance?.primera,
+                    company_segunda: extractedData.company_attendance?.segunda,
+                    company_tercera: extractedData.company_attendance?.tercera,
+                    company_cuarta: extractedData.company_attendance?.cuarta,
+                    company_sexta: extractedData.company_attendance?.sexta,
+                    company_septima: extractedData.company_attendance?.septima,
+                    company_octava: extractedData.company_attendance?.octava,
+                    company_bc_bp: extractedData.company_attendance?.bc_bp,
+                    attendance_correction: extractedData.attendance_correction,
+                    sector_rural: extractedData.attendance_sector?.rural,
+                    sector_location: extractedData.attendance_sector?.location,
+                    sector_numbers: extractedData.attendance_sector?.sector_numbers,
+                    cant_lesionados: extractedData.cant_lesionados,
+                    cant_involucrados: extractedData.cant_involucrados,
+                    cant_damnificados: extractedData.cant_damnificados,
+                    cant_7_3: extractedData.cant_7_3,
+                    observations: extractedData.observations,
+                    other_observations: extractedData.other_observations,
+                    report_prepared_by: extractedData.report_prepared_by,
+                    list_prepared_by: extractedData.list_prepared_by,
+                    officer_in_charge: extractedData.officer_in_charge,
+                    called_by_command: extractedData.called_by_command,
+                    raw_data: extractedData
+                })
+                .eq('id', params.id);
+
+            if (updateError) throw updateError;
+
+            // Delete and re-insert vehicles
+            await supabase.from('incident_vehicles').delete().eq('incident_id', params.id);
+            if (extractedData.vehicles?.length > 0) {
+                const vehicles = extractedData.vehicles.map((v: any) => ({
+                    incident_id: params.id,
+                    brand: v.brand,
+                    model: v.model,
+                    plate: v.plate,
+                    driver: v.driver,
+                    run: v.run
+                }));
+                await supabase.from('incident_vehicles').insert(vehicles);
+            }
+
+            // Delete and re-insert people
+            await supabase.from('incident_involved_people').delete().eq('incident_id', params.id);
+            if (extractedData.involved_people?.length > 0) {
+                const people = extractedData.involved_people.map((p: any) => ({
+                    incident_id: params.id,
+                    name: p.name,
+                    run: p.run,
+                    attended_by_132: p.attended_by_132,
+                    observation: p.observation,
+                    status: p.status
+                }));
+                await supabase.from('incident_involved_people').insert(people);
+            }
+
+            // Delete and re-insert institutions
+            await supabase.from('incident_institutions').delete().eq('incident_id', params.id);
+            if (extractedData.institutions?.length > 0) {
+                const institutions = extractedData.institutions.map((inst: any) => ({
+                    incident_id: params.id,
+                    institution_type: inst.type,
+                    present: inst.present !== false,
+                    name: inst.name,
+                    grade: inst.grade,
+                    comisaria: inst.comisaria,
+                    movil: inst.movil,
+                    cargo: inst.cargo,
+                    entidad: inst.entidad
+                }));
+                await supabase.from('incident_institutions').insert(institutions);
+            }
+
+            alert('¡Documento re-escaneado con éxito!');
+            // Reload the page to show updated data
+            window.location.reload();
+
+        } catch (e: any) {
+            console.error('Error rescanning:', e);
+            alert('Error al re-escanear: ' + e.message);
+        } finally {
+            setRescanning(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 flex items-center justify-center">
@@ -204,12 +368,24 @@ export default function DocumentDetailPage({ params }: { params: { id: string } 
                             )}
                         </div>
                     </div>
-                    <button
-                        onClick={handleDelete}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
-                    >
-                        <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex gap-2">
+                        {incident.scanned_images && incident.scanned_images.length > 0 && (
+                            <button
+                                onClick={handleRescan}
+                                disabled={rescanning}
+                                className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 disabled:opacity-50"
+                            >
+                                <RefreshCw className={`w-5 h-5 ${rescanning ? 'animate-spin' : ''}`} />
+                                {rescanning ? 'Re-escaneando...' : 'Re-escanear'}
+                            </button>
+                        )}
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                        >
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </header>
 
