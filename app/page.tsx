@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Camera, FileText } from 'lucide-react';
+import { Camera, FileText, BarChart3, FileBarChart } from 'lucide-react';
 
 export default function Home() {
     return (
@@ -10,7 +10,7 @@ export default function Home() {
                 </p>
             </div>
 
-            <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-3 lg:text-left gap-4">
+            <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left gap-4">
 
                 <Link
                     href="/scan"
@@ -18,13 +18,13 @@ export default function Home() {
                 >
                     <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2">
                         <Camera className="w-6 h-6" />
-                        Escanear Nuevo
+                        Escanear
                         <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
                             -&gt;
                         </span>
                     </h2>
                     <p className="m-0 max-w-[30ch] text-sm opacity-50">
-                        Toma una foto de un nuevo informe de incidente para extraer los datos.
+                        Escanea un nuevo informe de incidente.
                     </p>
                 </Link>
 
@@ -34,13 +34,45 @@ export default function Home() {
                 >
                     <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2">
                         <FileText className="w-6 h-6" />
-                        Ver Documentos
+                        Documentos
                         <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
                             -&gt;
                         </span>
                     </h2>
                     <p className="m-0 max-w-[30ch] text-sm opacity-50">
-                        Revisa todos los informes escaneados y guardados en el sistema.
+                        Ver todos los informes escaneados.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/dashboard"
+                    className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+                >
+                    <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2">
+                        <BarChart3 className="w-6 h-6" />
+                        Dashboard
+                        <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                            -&gt;
+                        </span>
+                    </h2>
+                    <p className="m-0 max-w-[30ch] text-sm opacity-50">
+                        Cuadro de mando con estadísticas.
+                    </p>
+                </Link>
+
+                <Link
+                    href="/informes"
+                    className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+                >
+                    <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2">
+                        <FileBarChart className="w-6 h-6" />
+                        Informes
+                        <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                            -&gt;
+                        </span>
+                    </h2>
+                    <p className="m-0 max-w-[30ch] text-sm opacity-50">
+                        Informes mensuales y KPIs.
                     </p>
                 </Link>
             </div>
