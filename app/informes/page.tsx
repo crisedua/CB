@@ -34,28 +34,43 @@ export default function InformesPage() {
     const loadMonthlyReport = async (month: string) => {
         setLoading(true);
         try {
-            const [year, monthNum] = month.split('-');
-            const startDate = `${year}-${monthNum}-01`;
-            // Fix: Calculate last day of month correctly
-            const lastDay = new Date(parseInt(year), parseInt(monthNum), 0).getDate();
-            const endDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+            let incidents;
+            let error;
 
-            console.log('Date range:', startDate, 'to', endDate);
+            if (month === 'all') {
+                // Load ALL incidents without date filter
+                const result = await supabase
+                    .from('incidents')
+                    .select('*')
+                    .order('date', { ascending: false });
+                incidents = result.data;
+                error = result.error;
+                console.log('Loading ALL incidents:', incidents?.length);
+            } else {
+                const [year, monthNum] = month.split('-');
+                const startDate = `${year}-${monthNum}-01`;
+                // Fix: Calculate last day of month correctly
+                const lastDay = new Date(parseInt(year), parseInt(monthNum), 0).getDate();
+                const endDate = `${year}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
 
-            // Get all incidents for the month
-            const { data: incidents, error } = await supabase
-                .from('incidents')
-                .select('*')
-                .gte('date', startDate)
-                .lte('date', endDate);
+                console.log('Date range:', startDate, 'to', endDate);
 
-            console.log('Found incidents:', incidents?.length, incidents);
+                // Get all incidents for the month
+                const result = await supabase
+                    .from('incidents')
+                    .select('*')
+                    .gte('date', startDate)
+                    .lte('date', endDate);
+                incidents = result.data;
+                error = result.error;
+                console.log('Found incidents:', incidents?.length, incidents);
+            }
 
             // ALSO get ALL incidents to debug
             const { data: allIncidents } = await supabase
                 .from('incidents')
                 .select('id, act_number, date, created_at');
-            
+
             console.log('ALL incidents in database:', allIncidents?.length, allIncidents);
 
             if (error) throw error;
@@ -72,8 +87,8 @@ export default function InformesPage() {
                 const [h2, m2] = i.arrival_time.split(':').map(Number);
                 return (h2 * 60 + m2) - (h1 * 60 + m1);
             }) || [];
-            const avg_response_time = responseTimes.length > 0 
-                ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
+            const avg_response_time = responseTimes.length > 0
+                ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
                 : 0;
 
             // Group by nature
@@ -93,11 +108,11 @@ export default function InformesPage() {
             });
 
             // Calculate compliance (example: incidents with complete data)
-            const completeIncidents = incidents?.filter(i => 
+            const completeIncidents = incidents?.filter(i =>
                 i.act_number && i.date && i.time && i.address && i.commander
             ).length || 0;
-            const compliance_percentage = total_incidents > 0 
-                ? Math.round((completeIncidents / total_incidents) * 100) 
+            const compliance_percentage = total_incidents > 0
+                ? Math.round((completeIncidents / total_incidents) * 100)
                 : 0;
 
             setStats({
@@ -137,7 +152,7 @@ export default function InformesPage() {
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
                         Informes Mensuales
                     </h1>
-                    <button 
+                    <button
                         onClick={() => router.push('/')}
                         className="text-sm font-medium text-gray-500 hover:text-gray-700"
                     >
@@ -145,16 +160,25 @@ export default function InformesPage() {
                     </button>
                 </div>
 
-                <div className="flex gap-4 items-center">
+                <div className="flex gap-4 items-center flex-wrap">
                     <div className="flex items-center gap-2">
                         <Calendar className="w-5 h-5 text-gray-500" />
                         <input
                             type="month"
-                            value={selectedMonth}
+                            value={selectedMonth === 'all' ? '' : selectedMonth}
                             onChange={(e) => handleMonthChange(e.target.value)}
                             className="px-4 py-2 border rounded-lg dark:bg-neutral-800 dark:border-neutral-700"
                         />
                     </div>
+                    <button
+                        onClick={() => handleMonthChange('all')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedMonth === 'all'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-neutral-600'
+                            }`}
+                    >
+                        Todos los períodos
+                    </button>
                     <button
                         onClick={exportToPDF}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"

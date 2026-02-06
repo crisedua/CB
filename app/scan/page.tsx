@@ -5,7 +5,19 @@ import { Camera, Loader2, Save, RefreshCw, X, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+const COMPANIES = [
+    { value: 'primera', label: 'Primera Compañía' },
+    { value: 'segunda', label: 'Segunda Compañía' },
+    { value: 'tercera', label: 'Tercera Compañía' },
+    { value: 'cuarta', label: 'Cuarta Compañía' },
+    { value: 'quinta', label: 'Quinta Compañía' },
+    { value: 'sexta', label: 'Sexta Compañía' },
+    { value: 'septima', label: 'Séptima Compañía' },
+    { value: 'octava', label: 'Octava Compañía' },
+];
+
 export default function ScanPage() {
+    const [selectedCompany, setSelectedCompany] = useState<string>('');
     const [images, setImages] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<any>(null);
@@ -114,17 +126,17 @@ export default function ScanPage() {
             // Upload images to Supabase Storage
             const imageUrls: string[] = [];
             let uploadSuccess = true;
-            
+
             console.log('Starting image upload process...');
             console.log('Number of images:', images.length);
-            
+
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
                 const timestamp = Date.now();
                 const fileName = `incident_${timestamp}_page${i + 1}.jpg`;
-                
+
                 console.log(`Processing image ${i + 1}/${images.length}...`);
-                
+
                 try {
                     // Convert base64 to blob
                     const base64Data = image.split(',')[1];
@@ -135,9 +147,9 @@ export default function ScanPage() {
                     }
                     const byteArray = new Uint8Array(byteNumbers);
                     const blob = new Blob([byteArray], { type: 'image/jpeg' });
-                    
+
                     console.log(`Uploading ${fileName} (${blob.size} bytes)...`);
-                    
+
                     // Upload to Supabase Storage
                     const { data: uploadData, error: uploadError } = await supabase.storage
                         .from('incident-scans')
@@ -146,21 +158,21 @@ export default function ScanPage() {
                             cacheControl: '3600',
                             upsert: false
                         });
-                    
+
                     if (uploadError) {
                         console.error('Upload error details:', uploadError);
                         uploadSuccess = false;
                         alert(`No se pudo subir la imagen ${i + 1}.\n\nError: ${uploadError.message}\n\nVerifica:\n1. El bucket 'incident-scans' existe en Supabase Storage\n2. El bucket es público\n3. Las variables NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY están configuradas\n\nLos datos se guardarán sin las imágenes.`);
                         break;
                     }
-                    
+
                     console.log('Upload successful:', uploadData);
-                    
+
                     // Get public URL
                     const { data: urlData } = supabase.storage
                         .from('incident-scans')
                         .getPublicUrl(fileName);
-                    
+
                     console.log('Public URL:', urlData.publicUrl);
                     imageUrls.push(urlData.publicUrl);
                 } catch (imgError: any) {
@@ -176,9 +188,12 @@ export default function ScanPage() {
 
             // Save incident with image URLs (or empty array if upload failed)
             const { error, data: insertedData } = await supabase.from('incidents').insert({
+                // Source company (who is uploading this form)
+                source_company: selectedCompany,
+
                 // Scanned images (empty if upload failed)
                 scanned_images: uploadSuccess ? imageUrls : [],
-                
+
                 // Basic info
                 act_number: data.act_number,
                 incident_number: data.incident_number,
@@ -188,35 +203,35 @@ export default function ScanPage() {
                 arrival_time: data.arrival_time,
                 return_time: data.return_time,
                 retired_time: data.retired_time,
-                
+
                 // Command
                 commander: data.commander,
                 company_commander: data.company_commander,
                 company_number: data.company_number,
                 department: data.department,
                 floor: data.floor,
-                
+
                 // Location
                 address: data.address,
                 corner: data.corner,
                 area: data.area,
                 commune: data.commune,
                 population: data.population,
-                
+
                 // Incident details
                 nature: data.nature,
                 fire_rescue_location: data.fire_rescue_location,
                 origin: data.origin,
                 cause: data.cause,
                 damage: data.damage,
-                
+
                 // Insurance
                 has_insurance: data.insurance?.has_insurance,
                 insurance_company: data.insurance?.company,
                 mobile_units: data.insurance?.mobile_units,
                 insurance_conductors: data.insurance?.conductors,
                 other_classes: data.insurance?.other_classes,
-                
+
                 // Company attendance
                 company_quinta: data.company_attendance?.quinta,
                 company_primera: data.company_attendance?.primera,
@@ -228,28 +243,28 @@ export default function ScanPage() {
                 company_octava: data.company_attendance?.octava,
                 company_bc_bp: data.company_attendance?.bc_bp,
                 attendance_correction: data.attendance_correction,
-                
+
                 // Sector
                 sector_rural: data.attendance_sector?.rural,
                 sector_location: data.attendance_sector?.location,
                 sector_numbers: data.attendance_sector?.sector_numbers,
-                
+
                 // Counts
                 cant_lesionados: data.cant_lesionados,
                 cant_involucrados: data.cant_involucrados,
                 cant_damnificados: data.cant_damnificados,
                 cant_7_3: data.cant_7_3,
-                
+
                 // Observations
                 observations: data.observations,
                 other_observations: data.other_observations,
-                
+
                 // Report metadata
                 report_prepared_by: data.report_prepared_by,
                 list_prepared_by: data.list_prepared_by,
                 officer_in_charge: data.officer_in_charge,
                 called_by_command: data.called_by_command,
-                
+
                 // Raw data
                 raw_data: data
             }).select().single();
@@ -329,16 +344,46 @@ export default function ScanPage() {
 
             {/* Main Content Area */}
             <div className={data ? "grid lg:grid-cols-2 gap-8" : "max-w-xl mx-auto"}>
-                {images.length === 0 && (
-                    <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="group border-2 border-dashed border-gray-300 rounded-2xl h-[60vh] flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-white hover:border-blue-400 hover:shadow-xl dark:border-neutral-700 dark:hover:bg-neutral-800"
-                    >
-                        <div className="p-6 bg-white dark:bg-neutral-800 rounded-full shadow-lg mb-6 group-hover:scale-110 transition-transform">
-                            <Camera className="w-12 h-12 text-blue-500" />
+                {/* Step 1: Select Company */}
+                {!selectedCompany && (
+                    <div className="bg-white dark:bg-neutral-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-neutral-700">
+                        <h2 className="text-xl font-bold mb-6 text-center">Selecciona tu Compañía</h2>
+                        <div className="grid grid-cols-1 gap-3">
+                            {COMPANIES.map((company) => (
+                                <button
+                                    key={company.value}
+                                    onClick={() => setSelectedCompany(company.value)}
+                                    className="w-full py-4 px-6 bg-gray-50 dark:bg-neutral-900 border-2 border-gray-200 dark:border-neutral-700 rounded-xl text-left font-medium hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all active:scale-[0.98]"
+                                >
+                                    {company.label}
+                                </button>
+                            ))}
                         </div>
-                        <p className="text-gray-600 font-medium text-lg">Toca para abrir la cámara</p>
-                        <p className="text-gray-400 text-sm mt-2">Sube 1 o 2 páginas del informe</p>
+                    </div>
+                )}
+
+                {/* Step 2: Upload Images */}
+                {selectedCompany && images.length === 0 && (
+                    <div className="space-y-4">
+                        <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-xl text-center font-medium">
+                            📋 {COMPANIES.find(c => c.value === selectedCompany)?.label}
+                            <button
+                                onClick={() => setSelectedCompany('')}
+                                className="ml-3 text-xs underline hover:no-underline"
+                            >
+                                Cambiar
+                            </button>
+                        </div>
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="group border-2 border-dashed border-gray-300 rounded-2xl h-[55vh] flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-white hover:border-blue-400 hover:shadow-xl dark:border-neutral-700 dark:hover:bg-neutral-800"
+                        >
+                            <div className="p-6 bg-white dark:bg-neutral-800 rounded-full shadow-lg mb-6 group-hover:scale-110 transition-transform">
+                                <Camera className="w-12 h-12 text-blue-500" />
+                            </div>
+                            <p className="text-gray-600 font-medium text-lg">Toca para abrir la cámara</p>
+                            <p className="text-gray-400 text-sm mt-2">Sube 1 o 2 páginas del informe</p>
+                        </div>
                     </div>
                 )}
 

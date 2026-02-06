@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Camera, FileText, BarChart3, FileBarChart } from 'lucide-react';
+import { Home, Camera, FileText, BarChart3, FileBarChart, Globe } from 'lucide-react';
 
 export default function Navigation() {
     const pathname = usePathname();
@@ -14,6 +14,7 @@ export default function Navigation() {
         { href: '/documents', label: 'Documentos', icon: FileText },
         { href: '/dashboard', label: 'Dashboard', icon: BarChart3 },
         { href: '/informes', label: 'Informes', icon: FileBarChart },
+        { href: 'https://www.quintacbo.cl/', label: 'Web Oficial', icon: Globe },
     ];
 
     return (
@@ -38,10 +39,14 @@ export default function Navigation() {
                         {links.map((link) => {
                             const Icon = link.icon;
                             const isActive = pathname === link.href;
+                            const isExternal = link.href.startsWith('http');
+
                             return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
+                                    target={isExternal ? '_blank' : undefined}
+                                    rel={isExternal ? 'noopener noreferrer' : undefined}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
                                         ? 'bg-red-600 text-white'
                                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800'

@@ -13,6 +13,9 @@ CREATE TABLE incidents (
   id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   
+  -- Source company (who uploaded this form)
+  source_company text, -- 'primera', 'segunda', 'tercera', 'cuarta', 'quinta', 'sexta', 'septima', 'octava'
+  
   -- Scanned images
   scanned_images text[], -- Array of image URLs from Supabase Storage
   

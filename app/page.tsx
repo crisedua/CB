@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Camera, FileText, BarChart3, FileBarChart } from 'lucide-react';
+import { Camera, FileText, BarChart3, FileBarChart, Globe } from 'lucide-react';
 
 export default function Home() {
     return (
@@ -10,7 +10,7 @@ export default function Home() {
                 </p>
             </div>
 
-            <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left gap-4">
+            <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-3 gap-4">
 
                 <Link
                     href="/scan"
@@ -73,6 +73,24 @@ export default function Home() {
                     </h2>
                     <p className="m-0 max-w-[30ch] text-sm opacity-50">
                         Informes mensuales y KPIs.
+                    </p>
+                </Link>
+
+                <Link
+                    href="https://www.quintacbo.cl/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30"
+                >
+                    <h2 className="mb-3 text-2xl font-semibold flex items-center gap-2 text-red-700 dark:text-red-400">
+                        <Globe className="w-6 h-6" />
+                        Web Oficial
+                        <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
+                            -&gt;
+                        </span>
+                    </h2>
+                    <p className="m-0 max-w-[30ch] text-sm opacity-50">
+                        Visita el sitio web oficial de la Quinta Compañía.
                     </p>
                 </Link>
             </div>
