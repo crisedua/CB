@@ -24,11 +24,9 @@ export default function InformesPage() {
     const router = useRouter();
 
     useEffect(() => {
-        // Set current month as default
-        const now = new Date();
-        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        setSelectedMonth(currentMonth);
-        loadMonthlyReport(currentMonth);
+        // Load all incidents by default instead of current month
+        setSelectedMonth('all');
+        loadMonthlyReport('all');
     }, []);
 
     const loadMonthlyReport = async (month: string) => {
@@ -173,8 +171,8 @@ export default function InformesPage() {
                     <button
                         onClick={() => handleMonthChange('all')}
                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedMonth === 'all'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-neutral-600'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-neutral-600'
                             }`}
                     >
                         Todos los períodos
