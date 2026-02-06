@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Camera, FileText, BarChart3, FileBarChart } from 'lucide-react';
@@ -20,9 +21,17 @@ export default function Navigation() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
-                        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-red-600">
-                            <span className="text-2xl">🚒</span>
-                            <span className="hidden sm:inline">Bomberos</span>
+                        <Link href="/" className="flex items-center gap-3 text-xl font-bold text-red-600">
+                            <div className="relative w-12 h-12">
+                                <Image
+                                    src="/logo.png"
+                                    alt="Logo 5 Osorno"
+                                    fill
+                                    className="object-contain"
+                                    priority
+                                />
+                            </div>
+                            <span className="hidden sm:inline">QUINTA COMPAÑIA</span>
                         </Link>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2">
@@ -33,11 +42,10 @@ export default function Navigation() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                        isActive
-                                            ? 'bg-red-600 text-white'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800'
-                                    }`}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
+                                        ? 'bg-red-600 text-white'
+                                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800'
+                                        }`}
                                 >
                                     <Icon className="w-4 h-4" />
                                     <span className="hidden md:inline">{link.label}</span>
