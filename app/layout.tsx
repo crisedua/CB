@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "./components/Navigation";
 import WhatsAppButton from "./components/WhatsAppButton";
+import AuthGuard from "./components/AuthGuard";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,9 +23,11 @@ export default function RootLayout({
     return (
         <html lang="es">
             <body className={inter.className}>
-                <Navigation />
-                {children}
-                <WhatsAppButton />
+                <AuthGuard>
+                    <Navigation />
+                    {children}
+                    <WhatsAppButton />
+                </AuthGuard>
             </body>
         </html>
     );

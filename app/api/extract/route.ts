@@ -1,13 +1,110 @@
 import OpenAI from 'openai';
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "dummy-key",
 });
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+
+// Input validation helpers (A03: Injection Prevention)
+function validateBase64Image(image: string): boolean {
+  if (typeof image !== 'string') return false;
+  if (image.length > 10 * 1024 * 1024) return false; // Max 10MB
+  if (!image.startsWith('data:image/')) return false;
+  return true;
+}
+
+function sanitizeInput(input: any): any {
+  if (typeof input === 'string') {
+    // Remove potential XSS/injection characters
+    return input.replace(/[<>\"']/g, '').trim();
+  }
+  return input;
+}
+
+// Rate limiting check
+async function checkRateLimit(identifier: string): Promise<boolean> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW);
+    
+    const { data, error } = await supabase
+      .from('rate_limits')
+      .select('request_count')
+      .eq('identifier', identifier)
+      .eq('endpoint', '/api/extract')
+      .gte('window_start', windowStart.toISOString())
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+      console.error('Rate limit check error:', error);
+      return true; // Allow on error
+    }
+
+    if (data && data.request_count >= RATE_LIMIT_MAX_REQUESTS) {
+      return false; // Rate limit exceeded
+    }
+
+    // Update or insert rate limit record
+    if (data) {
+      await supabase
+        .from('rate_limits')
+        .update({ request_count: data.request_count + 1 })
+        .eq('identifier', identifier)
+        .eq('endpoint', '/api/extract')
+        .gte('window_start', windowStart.toISOString());
+    } else {
+      await supabase
+        .from('rate_limits')
+        .insert({
+          identifier,
+          endpoint: '/api/extract',
+          request_count: 1,
+          window_start: new Date().toISOString()
+        });
+    }
+
+    return true;
+  } catch (e) {
+    console.error('Rate limit error:', e);
+    return true; // Allow on error
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    // Get client IP for rate limiting
+    const forwarded = req.headers.get('x-forwarded-for');
+    const ip = forwarded ? forwarded.split(',')[0] : 'unknown';
+    
+    // Check rate limit (A04: Insecure Design - Rate Limiting)
+    const rateLimitOk = await checkRateLimit(ip);
+    if (!rateLimitOk) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // Parse and validate request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
     const { images } = body;
 
     console.log("API /extract body keys:", Object.keys(body));
@@ -20,9 +117,40 @@ export async function POST(req: Request) {
       console.log("Images field is missing or null");
     }
 
-    if (!images || images.length === 0) {
+    // Input validation (A03: Injection)
+    if (!images || !Array.isArray(images)) {
+      console.error("Error: Images must be an array");
+      return NextResponse.json(
+        { error: 'Images must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (images.length === 0) {
       console.error("Error: No images provided in request");
-      return NextResponse.json({ error: 'No images provided' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'No images provided' },
+        { status: 400 }
+      );
+    }
+
+    if (images.length > 5) {
+      console.error("Error: Too many images");
+      return NextResponse.json(
+        { error: 'Maximum 5 images allowed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate each image
+    for (let i = 0; i < images.length; i++) {
+      if (!validateBase64Image(images[i])) {
+        console.error(`Error: Invalid image format at index ${i}`);
+        return NextResponse.json(
+          { error: `Invalid image format at index ${i}` },
+          { status: 400 }
+        );
+      }
     }
 
     const prompt = `
@@ -183,17 +311,26 @@ Return ONLY valid JSON, no markdown.
   } catch (error: any) {
     console.error("AI Error Detailed:", error);
 
+    // Sanitize error messages to avoid information disclosure (A05: Security Misconfiguration)
+    let errorMessage = 'Failed to process image';
+    let statusCode = 500;
+
     // Check for common OpenAI errors
     if (error.status === 401) {
-      return NextResponse.json({ error: 'Incorrect OpenAI API Key' }, { status: 401 });
-    }
-    if (error.status === 429) {
-      return NextResponse.json({ error: 'OpenAI Rate Limit Exceeded' }, { status: 429 });
+      errorMessage = 'Authentication error';
+      statusCode = 401;
+    } else if (error.status === 429) {
+      errorMessage = 'Service temporarily unavailable';
+      statusCode = 429;
+    } else if (error.status === 400) {
+      errorMessage = 'Invalid request';
+      statusCode = 400;
     }
 
-    return NextResponse.json({
-      error: error.message || 'Failed to process image',
-      details: error.toString()
-    }, { status: 500 });
+    // Log full error server-side but don't expose to client
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: statusCode }
+    );
   }
 }

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,4 +13,18 @@ const supabaseAnonKey = (envKey && envKey.length > 0)
     ? envKey
     : 'placeholder';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Legacy client for backward compatibility
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+    }
+})
+
+// Auth-aware client for components (recommended)
+export const createSupabaseClient = () => {
+    if (typeof window !== 'undefined') {
+        return createClientComponentClient()
+    }
+    return supabase
+}

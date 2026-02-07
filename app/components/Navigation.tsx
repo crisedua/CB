@@ -2,11 +2,41 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, Camera, FileText, BarChart3, FileBarChart, Globe } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, Camera, FileText, BarChart3, FileBarChart, Globe, LogOut, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function Navigation() {
     const pathname = usePathname();
+    const router = useRouter();
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Get initial session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
+
+    // Don't show navigation on login/signup pages
+    if (pathname === '/login' || pathname === '/signup') {
+        return null;
+    }
 
     const links = [
         { href: '/', label: 'Inicio', icon: Home },
@@ -57,6 +87,26 @@ export default function Navigation() {
                                 </Link>
                             );
                         })}
+
+                        {/* User menu - only show if authenticated */}
+                        {!loading && user && (
+                            <>
+                                <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-neutral-800 rounded-lg ml-2">
+                                    <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-sm text-gray-600 dark:text-gray-400 max-w-[150px] truncate">
+                                        {user.email}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={handleLogout}
+                                    className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    title="Cerrar sesión"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    <span className="hidden md:inline">Salir</span>
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
